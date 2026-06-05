@@ -22,7 +22,14 @@
       暂无分场大纲，点击“生成分场”开始规划
     </div>
     <div v-else class="scene-grid">
-      <SceneCard v-for="(scene, index) in scenes" :key="scene.scene_id" :scene="scene" :index="index" />
+      <SceneCard
+        v-for="(scene, index) in scenes"
+        :key="scene.scene_id"
+        :scene="scene"
+        :index="index"
+        :generating="generatingSceneId === scene.scene_id"
+        @generate="handleGenerateScript"
+      />
     </div>
   </section>
 </template>
@@ -31,13 +38,14 @@
 import { ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 
-import { getScenes, planScenes } from '../api'
+import { generateScript, getScenes, planScenes } from '../api'
 import SceneCard from '../components/SceneCard.vue'
 import { currentNovel } from '../store/workspace'
 
 const loading = ref(false)
 const sceneCount = ref(5)
 const scenes = ref([])
+const generatingSceneId = ref(null)
 
 watch(
   currentNovel,
@@ -73,6 +81,22 @@ async function handlePlan() {
     ElMessage.error(error.response?.data?.detail || '生成分场失败')
   } finally {
     loading.value = false
+  }
+}
+
+async function handleGenerateScript(scene) {
+  generatingSceneId.value = scene.scene_id
+  try {
+    await generateScript(scene.scene_id, {
+      style: '短剧风格',
+      dialogue_density: 'medium',
+      include_camera_language: true
+    })
+    ElMessage.success(`《${scene.title}》剧本已生成，可到“剧本编辑”查看和修改`)
+  } catch (error) {
+    ElMessage.error(error.response?.data?.detail || '生成剧本失败')
+  } finally {
+    generatingSceneId.value = null
   }
 }
 </script>

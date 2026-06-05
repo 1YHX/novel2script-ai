@@ -27,15 +27,19 @@
       </div>
       <div>
         <dt>原文段落</dt>
-        <dd>{{ scene.source_paragraphs.join('、') || '未知' }}</dd>
+        <dd>{{ sourceParagraphSummary }}</dd>
       </div>
     </dl>
-    <el-button type="primary" plain disabled>生成剧本</el-button>
+    <el-button type="primary" plain :loading="generating" @click="$emit('generate', scene)">
+      {{ generating ? '生成中' : '生成剧本' }}
+    </el-button>
   </article>
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   scene: {
     type: Object,
     required: true
@@ -43,6 +47,21 @@ defineProps({
   index: {
     type: Number,
     required: true
+  },
+  generating: {
+    type: Boolean,
+    default: false
   }
+})
+
+defineEmits(['generate'])
+
+const sourceParagraphSummary = computed(() => {
+  const ids = props.scene.source_paragraphs || []
+  if (ids.length === 0) return '未知'
+  if (ids.length <= 6) return ids.join('、')
+
+  const sorted = [...ids].sort((a, b) => a - b)
+  return `${sorted[0]}-${sorted[sorted.length - 1]}（${sorted.length} 段）`
 })
 </script>

@@ -31,11 +31,16 @@ def generate_script(
     source_paragraph_ids = _safe_json_loads(scene.source_paragraphs_json, [])
     paragraphs = []
     if source_paragraph_ids:
+        limited_source_ids = source_paragraph_ids[:12]
         paragraphs = session.exec(
             select(Paragraph)
             .where(Paragraph.novel_id == scene.novel_id)
-            .where((Paragraph.id.in_(source_paragraph_ids)) | (Paragraph.order_index.in_(source_paragraph_ids)))
+            .where((Paragraph.id.in_(limited_source_ids)) | (Paragraph.order_index.in_(limited_source_ids)))
             .order_by(Paragraph.id)
+        ).all()
+    if not paragraphs:
+        paragraphs = session.exec(
+            select(Paragraph).where(Paragraph.novel_id == scene.novel_id).order_by(Paragraph.id).limit(12)
         ).all()
 
     system_prompt = PROMPT_PATH.read_text(encoding="utf-8")
