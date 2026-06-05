@@ -140,16 +140,5 @@ class LLMService:
                     },
                 ]
             },
-            "consistency": {
-                "issues": [
-                    {
-                        "level": "medium",
-                        "type": "剧情转场不足",
-                        "scene_id": 2,
-                        "description": "角色从出租屋到旧仓库的过程较快，缺少到达原因和路途压力。",
-                        "suggestion": "建议补充一段转场描写，强化林川赶往旧仓库的动机。",
-                    }
-                ]
-            },
         }
         return mock_map.get(schema_name, {})

@@ -19,11 +19,11 @@
     <div class="export-layout">
       <div class="export-format">
         <h3>YAML</h3>
-        <p>题目要求的结构化剧本格式，包含人物档案、分场节拍、剧本文本、原文段落追溯和一致性检查结果。</p>
+        <p>题目要求的结构化剧本格式，包含人物档案、分场节拍、剧本文本和原文段落追溯。</p>
       </div>
       <div class="export-format">
         <h3>Markdown</h3>
-        <p>包含人物档案、分场大纲、完整剧本和一致性检查报告，适合演示和提交。</p>
+        <p>包含人物档案、分场大纲和完整剧本，适合演示和提交。</p>
       </div>
       <div class="export-format muted">
         <h3>PDF / DOCX</h3>

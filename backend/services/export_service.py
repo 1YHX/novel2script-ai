@@ -15,14 +15,8 @@ class ExportService:
         characters: list[Character],
         scenes: list[Scene],
         scripts: list[Script],
-        issues: Optional[list[dict]] = None,
     ) -> str:
-        issue_items = issues or []
         script_by_scene_id = {script.scene_id: script for script in scripts}
-        issues_by_scene_id: dict[int, list[dict]] = {}
-        for issue in issue_items:
-            scene_id = int(issue.get("scene_id", 0) or 0)
-            issues_by_scene_id.setdefault(scene_id, []).append(issue)
 
         data = {
             "schema_version": "1.0",
@@ -39,10 +33,7 @@ class ExportService:
                 "meets_requirement": chapter_count >= 3,
             },
             "characters": [self._character_to_dict(character) for character in characters],
-            "scenes": [
-                self._scene_to_dict(scene, script_by_scene_id.get(scene.id), issues_by_scene_id.get(scene.scene_index, []))
-                for scene in scenes
-            ],
+            "scenes": [self._scene_to_dict(scene, script_by_scene_id.get(scene.id)) for scene in scenes],
         }
         return self._dump_yaml(data)
 
@@ -52,9 +43,7 @@ class ExportService:
         characters: list[Character],
         scenes: list[Scene],
         scripts: list[Script],
-        issues: Optional[list[dict]] = None,
     ) -> str:
-        issue_items = issues or []
         script_by_scene_id = {script.scene_id: script for script in scripts}
 
         lines = [
@@ -124,23 +113,6 @@ class ExportService:
         else:
             lines.extend(["暂无剧本内容。", ""])
 
-        lines.extend(["## 四、一致性检查报告", ""])
-        if issue_items:
-            for issue in issue_items:
-                lines.extend(
-                    [
-                        f"### {issue.get('type', '未知问题')}",
-                        "",
-                        f"- 等级：{issue.get('level', 'unknown')}",
-                        f"- 场景：{issue.get('scene_id', '未知')}",
-                        f"- 描述：{issue.get('description', '')}",
-                        f"- 建议：{issue.get('suggestion', '')}",
-                        "",
-                    ]
-                )
-        else:
-            lines.extend(["暂无一致性检查报告。", ""])
-
         return "\n".join(lines)
 
     def _character_to_dict(self, character: Character) -> dict:
@@ -155,7 +127,7 @@ class ExportService:
             "evidence": character.evidence,
         }
 
-    def _scene_to_dict(self, scene: Scene, script: Optional[Script], issues: list[dict]) -> dict:
+    def _scene_to_dict(self, scene: Scene, script: Optional[Script]) -> dict:
         return {
             "scene_id": scene.scene_index,
             "title": scene.title,
@@ -172,7 +144,6 @@ class ExportService:
                 "format": "plain_text",
                 "content": script.content if script else "",
             },
-            "issues": issues,
         }
 
     def _dump_yaml(self, value, indent: int = 0) -> str:

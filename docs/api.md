@@ -64,18 +64,10 @@
 
 保存编辑后的剧本内容，并生成新版本。
 
-## POST /api/check/consistency/{novel_id}
-
-检查人物档案、分场大纲和已生成剧本的一致性。
-
-## GET /api/check/reports/{novel_id}
-
-读取最新一致性检查报告。
-
 ## GET /api/export/markdown/{novel_id}
 
-导出 Markdown 文件，包含人物档案、分场大纲、完整剧本和一致性检查报告。
+导出 Markdown 文件，包含人物档案、分场大纲和完整剧本。
 
 ## GET /api/export/yaml/{novel_id}
 
-导出题目要求的结构化剧本 YAML 文件，包含项目元信息、人物档案、分场节拍、剧本文本和一致性检查结果。
+导出题目要求的结构化剧本 YAML 文件，包含项目元信息、人物档案、分场节拍和剧本文本。

@@ -10,9 +10,9 @@
 
 1. 多阶段小说改编流程
 2. 结构化 Schema 约束
-3. 人物一致性维护
+3. 原文段落追溯
 4. 分场式剧本生成
-5. 可解释的检查报告
+5. YAML 与 Markdown 双格式导出
 
 ## 技术架构
 
@@ -75,7 +75,6 @@ LLM_MODEL=deepseek-chat
 - 人物档案抽取
 - 分场大纲生成
 - 单场剧本生成与编辑
-- 一致性检查
 - YAML 导出
 - Markdown 导出
 
@@ -92,8 +91,6 @@ LLM_MODEL=deepseek-chat
 - `POST /api/scripts/generate/{scene_id}`
 - `GET /api/scripts/{scene_id}`
 - `PUT /api/scripts/{script_id}`
-- `POST /api/check/consistency/{novel_id}`
-- `GET /api/check/reports/{novel_id}`
 - `GET /api/export/markdown/{novel_id}`
 - `GET /api/export/yaml/{novel_id}`
 
@@ -115,8 +112,8 @@ LLM_MODEL=deepseek-chat
 - PR 4：实现人物档案抽取与角色卡展示
 - PR 5：实现分场大纲生成与场景列表展示
 - PR 6：实现单场剧本生成与编辑保存
-- PR 7：实现一致性检查与问题报告
-- PR 8：实现 Markdown 导出与示例数据
+- PR 7：实现 Markdown 导出与示例数据
+- PR 8：实现 YAML 导出与 Schema 文档
 
 ## 未来规划
 

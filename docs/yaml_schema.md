@@ -1,6 +1,6 @@
 # 剧本 YAML Schema
 
-本项目的核心交付物是可编辑的结构化剧本 YAML。YAML 比纯文本更适合小说改编工作流，因为它既能被作者直接阅读和修改，也能被程序继续解析、检查和导出。
+本项目的核心交付物是可编辑的结构化剧本 YAML。YAML 比纯文本更适合小说改编工作流，因为它既能被作者直接阅读和修改，也能被程序继续解析、二次编辑和导出。
 
 ## Schema 示例
 
@@ -52,7 +52,6 @@ scenes:
 
         【内景，空艇头等舱，白天】
         ...
-    issues: []
 ```
 
 ## 字段定义
@@ -84,12 +83,11 @@ scenes:
 | `scenes[].beat` | object | 是 | 场景节拍，参考 Dramatron 的 `plot_element / beat` 思路。 |
 | `scenes[].beat.plot_goal` | string | 是 | 本场剧情目的。 |
 | `scenes[].beat.conflict` | string | 是 | 本场冲突。 |
-| `scenes[].source_paragraphs` | array | 是 | 对应原文段落 ID，用于追溯和一致性检查。 |
+| `scenes[].source_paragraphs` | array | 是 | 对应原文段落 ID，用于追溯每场改编来源。 |
 | `scenes[].script` | object | 是 | 当前场景剧本文本。 |
 | `scenes[].script.version` | number/null | 是 | 剧本版本号，未生成时为 `null`。 |
 | `scenes[].script.format` | string | 是 | 当前为 `plain_text`。 |
 | `scenes[].script.content` | string | 是 | 可编辑剧本正文。 |
-| `scenes[].issues` | array | 是 | 与本场相关的一致性检查问题。 |
 
 ## 设计原因
 
@@ -102,8 +100,8 @@ scenes:
 3. 支持作者编辑  
    `script.content` 使用纯文本块，作者可以直接修改；`version` 用于后续版本管理。
 
-4. 支持程序化检查  
-   `characters`、`location`、`time`、`beat` 都是结构化字段，系统可以检查人物是否缺失、地点和时间是否写入剧本，而不是只依赖大模型自由判断。
+4. 支持后续自动化处理  
+   `characters`、`location`、`time`、`beat` 和 `script` 都是结构化字段，后续可以继续用于版本管理、格式转换或人工精修，而不是只保留一段不可解析的文本。
 
 5. 贴合 Dramatron 的层级思想  
    Dramatron 使用 `Scene(place, plot_element, beat)` 作为生成对白前的中间结构。本 Schema 将 `location`、`beat.plot_goal` 和 `beat.conflict` 固化下来，让小说改编结果既可读，也能继续驱动单场剧本生成。
