@@ -7,9 +7,22 @@
         <p v-else>请先完成小说导入和分场大纲</p>
       </div>
       <div class="toolbar-actions">
-        <el-button :disabled="!currentNovel" @click="loadScenes">刷新场景</el-button>
+        <el-button :disabled="!currentNovel || batchGenerating" @click="loadScenes">刷新场景</el-button>
+        <el-button
+          type="primary"
+          :disabled="!currentNovel || scenes.length === 0 || ungeneratedScenes.length === 0"
+          :loading="batchGenerating"
+          @click="handleBatchGenerate"
+        >
+          {{ batchGenerating ? '批量生成中' : '批量生成未生成' }}
+        </el-button>
       </div>
     </header>
+
+    <div v-if="currentNovel && scenes.length > 0" class="script-batch-status">
+      <span>已生成 {{ generatedCount }} / {{ scenes.length }} 场</span>
+      <el-progress :percentage="batchProgress" :show-text="false" />
+    </div>
 
     <div v-if="!currentNovel" class="panel-placeholder">
       导入小说并生成分场后即可编辑单场剧本
@@ -51,7 +64,12 @@
                 <el-option label="电影风格" value="电影风格" />
                 <el-option label="舞台剧风格" value="舞台剧风格" />
               </el-select>
-              <el-button :type="script ? 'default' : 'primary'" :loading="generating" @click="handleGenerate">
+              <el-button
+                :type="script ? 'default' : 'primary'"
+                :loading="generating"
+                :disabled="batchGenerating"
+                @click="handleGenerate"
+              >
                 {{ script ? '重新生成' : '生成剧本' }}
               </el-button>
               <el-button type="primary" :disabled="!script" :loading="saving" @click="handleSave">保存修改</el-button>
@@ -76,7 +94,7 @@
 </template>
 
 <script setup>
-import { nextTick, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 
 import { generateScript, getScenes, getScript, updateScript } from '../api'
@@ -89,7 +107,15 @@ const scriptStatus = ref({})
 const content = ref('')
 const style = ref('短剧风格')
 const generating = ref(false)
+const batchGenerating = ref(false)
 const saving = ref(false)
+
+const generatedCount = computed(() => Object.keys(scriptStatus.value).length)
+const ungeneratedScenes = computed(() => scenes.value.filter((scene) => !scriptStatus.value[scene.scene_id]))
+const batchProgress = computed(() => {
+  if (scenes.value.length === 0) return 0
+  return Math.round((generatedCount.value / scenes.value.length) * 100)
+})
 
 watch(
   currentNovel,
@@ -192,23 +218,51 @@ async function handleGenerate() {
 
   generating.value = true
   try {
-    const response = await generateScript(selectedScene.value.scene_id, {
-      style: style.value,
-      dialogue_density: 'medium',
-      include_camera_language: true
-    })
-    script.value = response.data
-    scriptStatus.value = {
-      ...scriptStatus.value,
-      [selectedScene.value.scene_id]: response.data
-    }
-    content.value = response.data.content
+    const generatedScript = await generateSceneScript(selectedScene.value)
+    script.value = generatedScript
+    content.value = generatedScript.content
     ElMessage.success('剧本已生成')
   } catch (error) {
     ElMessage.error(error.response?.data?.detail || '生成剧本失败')
   } finally {
     generating.value = false
   }
+}
+
+async function handleBatchGenerate() {
+  if (ungeneratedScenes.value.length === 0) return
+
+  batchGenerating.value = true
+  let successCount = 0
+  try {
+    for (const scene of ungeneratedScenes.value) {
+      const generatedScript = await generateSceneScript(scene)
+      successCount += 1
+      if (!selectedScene.value || selectedScene.value.scene_id === scene.scene_id) {
+        selectedScene.value = scene
+        script.value = generatedScript
+        content.value = generatedScript.content
+      }
+    }
+    ElMessage.success(`批量生成完成，共生成 ${successCount} 场`)
+  } catch (error) {
+    ElMessage.error(error.response?.data?.detail || `批量生成中断，已完成 ${successCount} 场`)
+  } finally {
+    batchGenerating.value = false
+  }
+}
+
+async function generateSceneScript(scene) {
+  const response = await generateScript(scene.scene_id, {
+    style: style.value,
+    dialogue_density: 'medium',
+    include_camera_language: true
+  })
+  scriptStatus.value = {
+    ...scriptStatus.value,
+    [scene.scene_id]: response.data
+  }
+  return response.data
 }
 
 async function handleSave() {
