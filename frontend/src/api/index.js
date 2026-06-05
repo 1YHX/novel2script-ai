@@ -8,3 +8,7 @@ export const api = axios.create({
 export function getHealth() {
   return api.get('/health')
 }
+
+export function importNovel(payload) {
+  return api.post('/novels/import', payload)
+}
