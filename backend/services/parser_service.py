@@ -29,31 +29,37 @@ class ParserService:
         if not normalized:
             return []
 
-        blocks = [block.strip() for block in re.split(r"\n\s*\n", normalized) if block.strip()]
         chapters: list[ParsedChapter] = []
         current_title = "正文"
         current_paragraphs: list[ParsedParagraph] = []
+        pending_lines: list[str] = []
 
-        for block in blocks:
-            lines = [line.strip() for line in block.split("\n") if line.strip()]
-            first_line = lines[0] if lines else ""
+        def flush_pending() -> None:
+            if pending_lines:
+                current_paragraphs.append(ParsedParagraph(content="\n".join(pending_lines).strip()))
+                pending_lines.clear()
 
-            if len(lines) == 1 and CHAPTER_PATTERN.match(first_line):
-                if current_paragraphs:
+        for raw_line in normalized.split("\n"):
+            line = raw_line.strip()
+            if not line:
+                flush_pending()
+                continue
+
+            if CHAPTER_PATTERN.match(line):
+                flush_pending()
+                if current_paragraphs or current_title != "正文":
                     chapters.append(ParsedChapter(title=current_title, paragraphs=current_paragraphs))
-                current_title = first_line
+                current_title = line
                 current_paragraphs = []
                 continue
 
-            if CHAPTER_PATTERN.match(first_line) and len(lines) > 1:
-                if current_paragraphs:
-                    chapters.append(ParsedChapter(title=current_title, paragraphs=current_paragraphs))
-                current_title = first_line
-                current_paragraphs = [ParsedParagraph(content="\n".join(lines[1:]))]
-                continue
+            if self._looks_like_dialogue_or_paragraph(line):
+                flush_pending()
+                current_paragraphs.append(ParsedParagraph(content=line))
+            else:
+                pending_lines.append(line)
 
-            current_paragraphs.append(ParsedParagraph(content=block))
-
+        flush_pending()
         if current_paragraphs:
             chapters.append(ParsedChapter(title=current_title, paragraphs=current_paragraphs))
 
@@ -61,6 +67,15 @@ class ParserService:
             return self._group_without_chapter_titles(chapters[0].paragraphs)
 
         return chapters
+
+    def _looks_like_dialogue_or_paragraph(self, line: str) -> bool:
+        if len(line) >= 18:
+            return True
+        if line.endswith(("。", "！", "？", "……", "\"", "”")):
+            return True
+        if "：" in line or ":" in line:
+            return True
+        return False
 
     def _group_without_chapter_titles(self, paragraphs: list[ParsedParagraph]) -> list[ParsedChapter]:
         group_size = 6

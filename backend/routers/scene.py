@@ -6,10 +6,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, delete, select
 
 from database import get_session
+from models.character import Character
 from models.novel import Novel
+from models.paragraph import Paragraph
 from models.scene import Scene
 from schemas.scene import SceneListResponse, SceneResponse
-from services.llm_service import LLMError, LLMService
+from services.llm_service import LLMService
+from services.scene_planner_service import ScenePlannerService
 
 
 router = APIRouter(prefix="/api/scenes", tags=["scenes"])
@@ -27,20 +30,12 @@ def plan_scenes(
         raise HTTPException(status_code=404, detail="小说不存在")
 
     system_prompt = PROMPT_PATH.read_text(encoding="utf-8")
-    user_prompt = (
-        f"小说标题：{novel.title}\n"
-        f"目标场景数量：{scene_count}\n\n"
-        f"小说正文：\n{novel.content[:16000]}"
-    )
+    paragraphs = session.exec(select(Paragraph).where(Paragraph.novel_id == novel_id).order_by(Paragraph.id)).all()
+    characters = session.exec(select(Character).where(Character.novel_id == novel_id).order_by(Character.id)).all()
+    raw_scenes = ScenePlannerService(LLMService()).plan(novel, paragraphs, characters, system_prompt, scene_count)
 
-    try:
-        result = LLMService().generate_json(system_prompt, user_prompt, "scenes")
-    except LLMError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
-
-    raw_scenes = result.get("scenes")
-    if not isinstance(raw_scenes, list):
-        raise HTTPException(status_code=502, detail="分场大纲结果缺少 scenes 数组")
+    if not raw_scenes:
+        raise HTTPException(status_code=400, detail="小说段落不足，无法生成分场大纲")
 
     session.exec(delete(Scene).where(Scene.novel_id == novel_id))
     session.commit()
