@@ -80,7 +80,7 @@ import { nextTick, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 
 import { generateScript, getScenes, getScript, updateScript } from '../api'
-import { currentNovel, selectedSceneId } from '../store/workspace'
+import { activeTab, currentNovel, selectedSceneId } from '../store/workspace'
 
 const scenes = ref([])
 const selectedScene = ref(null)
@@ -122,19 +122,30 @@ watch(
   { immediate: true }
 )
 
-async function loadScenes() {
+watch(
+  activeTab,
+  (tabName) => {
+    if (tabName === 'scripts' && currentNovel.value) {
+      loadScenes({ forceSelectFirst: scenes.value.length === 0 })
+    }
+  },
+  { immediate: true }
+)
+
+async function loadScenes(options = {}) {
   if (!currentNovel.value) return
 
   try {
     const response = await getScenes(currentNovel.value.novel_id)
     scenes.value = response.data.scenes
     await loadScriptStatus()
-    if (selectedSceneId.value && !selectedScene.value) {
+    const shouldSelectFirst = options.forceSelectFirst || !selectedScene.value
+    if (selectedSceneId.value && shouldSelectFirst) {
       const scene = scenes.value.find((item) => item.scene_id === selectedSceneId.value)
       if (scene) {
         await selectScene(scene)
       }
-    } else if (!selectedScene.value && scenes.value.length > 0) {
+    } else if (shouldSelectFirst && scenes.value.length > 0) {
       await selectScene(scenes.value[0])
     }
   } catch (error) {
