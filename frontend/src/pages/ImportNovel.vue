@@ -88,7 +88,7 @@ function loadExample() {
   result.value = null
 }
 
-function handleFileChange(file) {
+async function handleFileChange(file) {
   const rawFile = file.raw
   if (!rawFile) return
 
@@ -97,14 +97,30 @@ function handleFileChange(file) {
     return
   }
 
-  const reader = new FileReader()
-  reader.onload = () => {
-    content.value = String(reader.result || '')
+  try {
+    const buffer = await rawFile.arrayBuffer()
+    content.value = decodeTextFile(buffer)
     if (!title.value.trim()) {
       title.value = rawFile.name.replace(/\.txt$/i, '')
     }
+    result.value = null
+  } catch (error) {
+    ElMessage.error('文件读取失败，请检查 txt 文件编码')
   }
-  reader.readAsText(rawFile, 'utf-8')
+}
+
+function decodeTextFile(buffer) {
+  const encodings = ['utf-8', 'gb18030', 'gbk']
+
+  for (const encoding of encodings) {
+    try {
+      return new TextDecoder(encoding, { fatal: true }).decode(buffer).replace(/^\uFEFF/, '')
+    } catch (error) {
+      // Try the next common Chinese txt encoding.
+    }
+  }
+
+  return new TextDecoder('utf-8').decode(buffer).replace(/^\uFEFF/, '')
 }
 
 async function submitImport() {
