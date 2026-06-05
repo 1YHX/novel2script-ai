@@ -1,6 +1,7 @@
 import json
 import re
-from typing import Any
+from difflib import SequenceMatcher
+from typing import Any, Optional
 
 from models.character import Character
 from models.scene import Scene
@@ -16,6 +17,7 @@ class ConsistencyService:
     ) -> list[dict[str, Any]]:
         issues: list[dict[str, Any]] = []
         known_names = {character.name for character in characters if character.name}
+        alias_issues: list[dict[str, Any]] = []
         latest_scripts = self._latest_scripts_by_scene(scripts)
 
         for scene in scenes:
@@ -36,31 +38,43 @@ class ConsistencyService:
 
             content = script.content
             issues.extend(self._check_scene_metadata(scene, content))
-            issues.extend(self._check_scene_characters(scene, scene_characters, known_names, content))
-            issues.extend(self._check_dialog_speakers(scene, known_names, content))
+            scene_issues, scene_alias_issues = self._check_scene_characters(
+                scene, scene_characters, known_names, content
+            )
+            issues.extend(scene_issues)
+            alias_issues.extend(scene_alias_issues)
+            speaker_issues, speaker_alias_issues = self._check_dialog_speakers(scene, known_names, content)
+            issues.extend(speaker_issues)
+            alias_issues.extend(speaker_alias_issues)
 
-        return self._dedupe(issues)
+        return self._dedupe(alias_issues + issues)
 
     def _check_scene_metadata(self, scene: Scene, content: str) -> list[dict[str, Any]]:
         issues: list[dict[str, Any]] = []
-        if scene.location and scene.location != "未知" and scene.location not in content:
+        declared_location = self._extract_field_value(content, "地点")
+        expected_location = self._normalize_location(scene.location)
+        actual_location = self._normalize_location(declared_location or content)
+        if expected_location and expected_location not in actual_location:
             issues.append(
                 self._issue(
                     "medium",
                     "地点缺失",
                     scene.scene_index,
-                    f"分场地点是“{scene.location}”，但剧本正文没有明确写出该地点。",
-                    "建议在场头或动作描写中补充场景地点，保持分场和剧本一致。",
+                    f"分场地点是“{scene.location}”，但剧本场头没有明确写出该地点。",
+                    "建议在剧本场头补充或统一地点名称，保持分场和剧本一致。",
                 )
             )
 
-        if scene.time and scene.time != "未知" and scene.time not in content:
+        declared_time = self._extract_field_value(content, "时间")
+        expected_time = self._normalize_time(scene.time)
+        actual_time = self._normalize_time(declared_time)
+        if expected_time and expected_time not in actual_time:
             issues.append(
                 self._issue(
                     "low",
                     "时间缺失",
                     scene.scene_index,
-                    f"分场时间是“{scene.time}”，但剧本正文没有明确写出该时间。",
+                    f"分场时间是“{scene.time}”，但剧本场头没有明确写出该时间。",
                     "建议在场头中写明时间，例如“时间：白天”。",
                 )
             )
@@ -73,10 +87,19 @@ class ConsistencyService:
         scene_characters: list[str],
         known_names: set[str],
         content: str,
-    ) -> list[dict[str, Any]]:
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         issues: list[dict[str, Any]] = []
+        alias_issues: list[dict[str, Any]] = []
         expected_names = [name for name in scene_characters if name and name != "未知"]
-        missing_names = [name for name in expected_names if name not in content]
+        missing_names = []
+        for name in expected_names:
+            if name in content:
+                continue
+            alias = self._find_similar_name(name, known_names)
+            if alias and alias in content:
+                alias_issues.append(self._name_alias_issue(scene.scene_index, name, alias))
+                continue
+            missing_names.append(name)
         if missing_names:
             issues.append(
                 self._issue(
@@ -91,7 +114,16 @@ class ConsistencyService:
         declared_names = self._extract_declared_characters(content)
         speakers = self._extract_speakers(content)
         appeared_names = declared_names | speakers
-        unexpected_names = sorted(name for name in known_names if name in appeared_names and name not in expected_names)
+        unexpected_names = []
+        for name in sorted(appeared_names):
+            if self._name_in_set(name, set(expected_names)):
+                continue
+            alias = self._find_similar_name(name, known_names)
+            if alias:
+                alias_issues.append(self._name_alias_issue(scene.scene_index, name, alias))
+                continue
+            if name in known_names:
+                unexpected_names.append(name)
         if unexpected_names:
             issues.append(
                 self._issue(
@@ -103,13 +135,24 @@ class ConsistencyService:
                 )
             )
 
-        return issues
+        return issues, alias_issues
 
-    def _check_dialog_speakers(self, scene: Scene, known_names: set[str], content: str) -> list[dict[str, Any]]:
+    def _check_dialog_speakers(
+        self, scene: Scene, known_names: set[str], content: str
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         speakers = self._extract_speakers(content)
-        unknown_speakers = sorted(speaker for speaker in speakers if speaker not in known_names)
+        unknown_speakers = []
+        alias_issues = []
+        for speaker in sorted(speakers):
+            if self._name_in_set(speaker, known_names):
+                continue
+            alias = self._find_similar_name(speaker, known_names)
+            if alias:
+                alias_issues.append(self._name_alias_issue(scene.scene_index, speaker, alias))
+            else:
+                unknown_speakers.append(speaker)
         if not unknown_speakers:
-            return []
+            return [], alias_issues
 
         return [
             self._issue(
@@ -119,7 +162,7 @@ class ConsistencyService:
                 f"剧本对白中出现“{'、'.join(unknown_speakers)}”，但人物档案中没有对应角色。",
                 "建议补充人物档案，或统一对白说话人的名称。",
             )
-        ]
+        ], alias_issues
 
     def _extract_speakers(self, content: str) -> set[str]:
         speakers: set[str] = set()
@@ -145,6 +188,54 @@ class ConsistencyService:
                     declared.add(cleaned)
         return declared
 
+    def _extract_field_value(self, content: str, field_name: str) -> str:
+        pattern = re.compile(rf"^\s*{field_name}\s*[:：]\s*(.+?)\s*$")
+        for line in content.splitlines()[:20]:
+            match = pattern.match(line.strip())
+            if match:
+                return match.group(1)
+        return ""
+
+    def _normalize_location(self, value: str) -> str:
+        text = re.sub(r"\s+", "", value or "")
+        text = re.sub(r"[（）()《》「」『』]", "", text)
+        text = re.sub(r"(内部|内|里|中)$", "", text)
+        return text if text != "未知" else ""
+
+    def _normalize_time(self, value: str) -> str:
+        text = re.sub(r"[（(].*?[）)]", "", value or "")
+        text = re.sub(r"\s+", "", text)
+        return text if text != "未知" else ""
+
+    def _name_in_set(self, name: str, names: set[str]) -> bool:
+        return name in names or any(name == self._clean_name(candidate) for candidate in names)
+
+    def _find_similar_name(self, name: str, names: set[str]) -> Optional[str]:
+        for candidate in names:
+            if name == candidate:
+                return candidate
+            cleaned_candidate = self._clean_name(candidate)
+            if name == cleaned_candidate:
+                continue
+            if len(name) >= 2 and len(candidate) >= 2:
+                if name in cleaned_candidate or cleaned_candidate in name:
+                    return candidate
+                if SequenceMatcher(None, name, cleaned_candidate).ratio() >= 0.72:
+                    return candidate
+        return None
+
+    def _clean_name(self, name: str) -> str:
+        return re.sub(r"[（(].*?[）)]", "", name or "").strip()
+
+    def _name_alias_issue(self, scene_id: int, script_name: str, profile_name: str) -> dict[str, Any]:
+        return self._issue(
+            "low",
+            "人物名称不一致",
+            scene_id,
+            f"剧本或分场中使用“{script_name}”，人物档案中相近名称是“{profile_name}”。",
+            "建议统一人物名称，或在人物档案中补充别名说明。",
+        )
+
     def _latest_scripts_by_scene(self, scripts: list[Script]) -> dict[int, Script]:
         latest: dict[int, Script] = {}
         for script in scripts:
@@ -166,7 +257,10 @@ class ConsistencyService:
         seen = set()
         deduped = []
         for issue in issues:
-            key = (issue["level"], issue["type"], issue["scene_id"], issue["description"])
+            if issue["type"] == "人物名称不一致":
+                key = (issue["level"], issue["type"], issue["description"])
+            else:
+                key = (issue["level"], issue["type"], issue["scene_id"], issue["description"])
             if key in seen:
                 continue
             seen.add(key)
