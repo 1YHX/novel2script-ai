@@ -23,7 +23,12 @@
           :class="{ active: selectedScene?.scene_id === scene.scene_id }"
           @click="selectScene(scene)"
         >
-          <span>第 {{ index + 1 }} 场</span>
+          <span class="scene-list-row">
+            <span>第 {{ index + 1 }} 场</span>
+            <em :class="{ ready: scriptStatus[scene.scene_id] }">
+              {{ scriptStatus[scene.scene_id] ? `v${scriptStatus[scene.scene_id].version}` : '未生成' }}
+            </em>
+          </span>
           <strong>{{ scene.title }}</strong>
           <small>{{ scene.time }} / {{ scene.location }}</small>
         </button>
@@ -46,9 +51,15 @@
                 <el-option label="电影风格" value="电影风格" />
                 <el-option label="舞台剧风格" value="舞台剧风格" />
               </el-select>
-              <el-button :loading="generating" @click="handleGenerate">生成剧本</el-button>
+              <el-button :type="script ? 'default' : 'primary'" :loading="generating" @click="handleGenerate">
+                {{ script ? '重新生成' : '生成剧本' }}
+              </el-button>
               <el-button type="primary" :disabled="!script" :loading="saving" @click="handleSave">保存修改</el-button>
             </div>
+          </div>
+
+          <div v-if="!script" class="script-empty-state">
+            当前场景还没有剧本，可直接在本页生成，不需要回到分场大纲。
           </div>
 
           <el-input
@@ -74,6 +85,7 @@ import { currentNovel, selectedSceneId } from '../store/workspace'
 const scenes = ref([])
 const selectedScene = ref(null)
 const script = ref(null)
+const scriptStatus = ref({})
 const content = ref('')
 const style = ref('短剧风格')
 const generating = ref(false)
@@ -85,6 +97,7 @@ watch(
     scenes.value = []
     selectedScene.value = null
     script.value = null
+    scriptStatus.value = {}
     content.value = ''
     if (currentNovel.value) {
       loadScenes()
@@ -115,15 +128,36 @@ async function loadScenes() {
   try {
     const response = await getScenes(currentNovel.value.novel_id)
     scenes.value = response.data.scenes
+    await loadScriptStatus()
     if (selectedSceneId.value && !selectedScene.value) {
       const scene = scenes.value.find((item) => item.scene_id === selectedSceneId.value)
       if (scene) {
         await selectScene(scene)
       }
+    } else if (!selectedScene.value && scenes.value.length > 0) {
+      await selectScene(scenes.value[0])
     }
   } catch (error) {
     ElMessage.error(error.response?.data?.detail || '读取场景失败')
   }
+}
+
+async function loadScriptStatus() {
+  const entries = await Promise.allSettled(
+    scenes.value.map(async (scene) => {
+      const response = await getScript(scene.scene_id)
+      return [scene.scene_id, response.data]
+    })
+  )
+
+  const nextStatus = {}
+  for (const entry of entries) {
+    if (entry.status === 'fulfilled') {
+      const [sceneId, latestScript] = entry.value
+      nextStatus[sceneId] = latestScript
+    }
+  }
+  scriptStatus.value = nextStatus
 }
 
 async function selectScene(scene) {
@@ -153,6 +187,10 @@ async function handleGenerate() {
       include_camera_language: true
     })
     script.value = response.data
+    scriptStatus.value = {
+      ...scriptStatus.value,
+      [selectedScene.value.scene_id]: response.data
+    }
     content.value = response.data.content
     ElMessage.success('剧本已生成')
   } catch (error) {
@@ -173,6 +211,10 @@ async function handleSave() {
   try {
     const response = await updateScript(script.value.script_id, { content: content.value })
     script.value = response.data
+    scriptStatus.value = {
+      ...scriptStatus.value,
+      [selectedScene.value.scene_id]: response.data
+    }
     content.value = response.data.content
     ElMessage.success('修改已保存')
   } catch (error) {
