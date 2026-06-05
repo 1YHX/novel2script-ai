@@ -72,6 +72,7 @@ LLM_MODEL=deepseek-chat
 ## 核心功能
 
 - 小说导入与解析
+- 演示登录与项目记录恢复
 - 人物档案抽取
 - 分场大纲生成
 - 单场剧本生成与编辑
@@ -83,6 +84,8 @@ LLM_MODEL=deepseek-chat
 当前已实现：
 
 - `GET /api/health`
+- `POST /api/auth/login`
+- `GET /api/novels`
 - `POST /api/novels/import`
 - `POST /api/characters/extract/{novel_id}`
 - `GET /api/characters/{novel_id}`

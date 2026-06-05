@@ -28,3 +28,16 @@ class NovelImportResponse(BaseModel):
     chapter_count: int
     paragraph_count: int
     chapters: list[ChapterResponse]
+
+
+class NovelSummaryResponse(BaseModel):
+    novel_id: int
+    title: str
+    chapter_count: int
+    paragraph_count: int
+    scene_count: int
+    script_count: int
+
+
+class NovelListResponse(BaseModel):
+    novels: list[NovelSummaryResponse]

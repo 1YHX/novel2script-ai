@@ -34,10 +34,30 @@
     </div>
 
     <aside class="result-panel">
-      <div v-if="!result" class="empty-result">
-        <span v-if="loading">正在解析章节和段落，请稍候…</span>
-        <span v-else-if="importError">{{ importError }}</span>
-        <span v-else>解析结果会显示章节数、段落数和章节预览</span>
+      <div v-if="!result">
+        <div class="result-panel-header">
+          <h3>项目记录</h3>
+          <el-button size="small" :loading="historyLoading" @click="loadHistory">刷新</el-button>
+        </div>
+        <div v-if="loading" class="empty-result compact">正在解析章节和段落，请稍候…</div>
+        <div v-else-if="importError" class="empty-result compact">{{ importError }}</div>
+        <div v-else-if="projectHistory.length === 0" class="empty-result compact">
+          暂无历史项目，解析结果会显示在这里
+        </div>
+        <el-scrollbar v-else height="360px">
+          <button
+            v-for="project in projectHistory"
+            :key="project.novel_id"
+            class="project-history-item"
+            :class="{ active: currentNovel?.novel_id === project.novel_id }"
+            @click="openProject(project)"
+          >
+            <strong>{{ project.title }}</strong>
+            <span>
+              {{ project.chapter_count }} 章 / {{ project.scene_count }} 场 / {{ project.script_count }} 版剧本
+            </span>
+          </button>
+        </el-scrollbar>
       </div>
       <div v-else>
         <div class="result-summary">
@@ -60,17 +80,19 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 
-import { importNovel } from '../api'
-import { clearCurrentNovel, setCurrentNovel } from '../store/workspace'
+import { getNovels, importNovel } from '../api'
+import { clearCurrentNovel, currentNovel, setCurrentNovel } from '../store/workspace'
 
 const title = ref('')
 const content = ref('')
 const loading = ref(false)
 const result = ref(null)
 const importError = ref('')
+const projectHistory = ref([])
+const historyLoading = ref(false)
 
 const exampleText = `第一章 雨夜
 
@@ -94,6 +116,35 @@ function loadExample() {
   result.value = null
   importError.value = ''
   clearCurrentNovel()
+}
+
+onMounted(() => {
+  loadHistory()
+})
+
+async function loadHistory() {
+  historyLoading.value = true
+  try {
+    const response = await getNovels()
+    projectHistory.value = response.data.novels
+  } catch (error) {
+    ElMessage.error(error.response?.data?.detail || '读取项目记录失败')
+  } finally {
+    historyLoading.value = false
+  }
+}
+
+function openProject(project) {
+  result.value = null
+  importError.value = ''
+  setCurrentNovel({
+    novel_id: project.novel_id,
+    title: project.title,
+    chapter_count: project.chapter_count,
+    paragraph_count: project.paragraph_count,
+    chapters: []
+  })
+  ElMessage.success(`已打开《${project.title}》`)
 }
 
 async function handleFileChange(file) {
@@ -151,6 +202,7 @@ async function submitImport() {
     })
     result.value = response.data
     setCurrentNovel(response.data)
+    await loadHistory()
     ElMessage.success('小说解析完成')
   } catch (error) {
     importError.value = error.response?.data?.detail || error.message || '小说解析失败'

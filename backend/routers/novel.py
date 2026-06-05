@@ -1,15 +1,50 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session
+from sqlmodel import Session, func, select
 
 from database import get_session
 from models.chapter import Chapter
 from models.novel import Novel
 from models.paragraph import Paragraph
-from schemas.novel import ChapterResponse, NovelImportRequest, NovelImportResponse, ParagraphResponse
+from models.scene import Scene
+from models.script import Script
+from schemas.novel import (
+    ChapterResponse,
+    NovelImportRequest,
+    NovelImportResponse,
+    NovelListResponse,
+    NovelSummaryResponse,
+    ParagraphResponse,
+)
 from services.parser_service import ParserService
 
 
 router = APIRouter(prefix="/api/novels", tags=["novels"])
+
+
+@router.get("", response_model=NovelListResponse)
+def list_novels(session: Session = Depends(get_session)) -> NovelListResponse:
+    novels = session.exec(select(Novel).order_by(Novel.created_at.desc())).all()
+    summaries = []
+    for novel in novels:
+        chapter_count = session.exec(
+            select(func.count()).select_from(Chapter).where(Chapter.novel_id == novel.id)
+        ).one()
+        paragraph_count = session.exec(
+            select(func.count()).select_from(Paragraph).where(Paragraph.novel_id == novel.id)
+        ).one()
+        scene_count = session.exec(select(func.count()).select_from(Scene).where(Scene.novel_id == novel.id)).one()
+        script_count = session.exec(select(func.count()).select_from(Script).where(Script.novel_id == novel.id)).one()
+        summaries.append(
+            NovelSummaryResponse(
+                novel_id=novel.id,
+                title=novel.title,
+                chapter_count=chapter_count,
+                paragraph_count=paragraph_count,
+                scene_count=scene_count,
+                script_count=script_count,
+            )
+        )
+    return NovelListResponse(novels=summaries)
 
 
 @router.post("/import", response_model=NovelImportResponse)

@@ -13,6 +13,14 @@ export function importNovel(payload) {
   return api.post('/novels/import', payload)
 }
 
+export function login(payload) {
+  return api.post('/auth/login', payload)
+}
+
+export function getNovels() {
+  return api.get('/novels')
+}
+
 export function extractCharacters(novelId) {
   return api.post(`/characters/extract/${novelId}`)
 }

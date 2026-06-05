@@ -11,13 +11,45 @@ body {
   box-sizing: border-box;
 }
 
+.login-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.login-panel {
+  width: min(420px, 100%);
+  padding: 28px;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.login-panel h1 {
+  margin-bottom: 22px;
+}
+
+.login-button {
+  width: 100%;
+}
+
 .workspace {
   max-width: 1180px;
   margin: 0 auto;
 }
 
 .hero {
+  position: relative;
   padding: 24px 0 16px;
+}
+
+.logout-button {
+  position: absolute;
+  top: 24px;
+  right: 0;
 }
 
 .eyebrow {
@@ -99,6 +131,48 @@ h1 {
   justify-content: center;
   color: #667085;
   text-align: center;
+}
+
+.empty-result.compact {
+  min-height: 260px;
+}
+
+.result-panel-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.result-panel-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.project-history-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 12px;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #30343b;
+  text-align: left;
+  cursor: pointer;
+}
+
+.project-history-item.active {
+  border-color: #409eff;
+  background: #f0f7ff;
+}
+
+.project-history-item span {
+  color: #667085;
+  font-size: 13px;
 }
 
 .result-summary {
