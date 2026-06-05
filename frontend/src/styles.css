@@ -209,3 +209,67 @@ h1 {
 .character-card .evidence {
   color: #667085;
 }
+
+.scene-actions {
+  align-items: center;
+}
+
+.scene-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.scene-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 340px;
+  padding: 16px;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.scene-header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.scene-header span {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e9f5ef;
+  color: #267047;
+  font-size: 13px;
+}
+
+.scene-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.scene-card dl {
+  flex: 1;
+  margin: 0;
+}
+
+.scene-card dl div {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.scene-card dt {
+  color: #667085;
+}
+
+.scene-card dd {
+  margin: 0;
+  color: #30343b;
+  line-height: 1.55;
+}

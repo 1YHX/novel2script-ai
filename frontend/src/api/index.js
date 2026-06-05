@@ -20,3 +20,13 @@ export function extractCharacters(novelId) {
 export function getCharacters(novelId) {
   return api.get(`/characters/${novelId}`)
 }
+
+export function planScenes(novelId, sceneCount = 5) {
+  return api.post(`/scenes/plan/${novelId}`, null, {
+    params: { scene_count: sceneCount }
+  })
+}
+
+export function getScenes(novelId) {
+  return api.get(`/scenes/${novelId}`)
+}
