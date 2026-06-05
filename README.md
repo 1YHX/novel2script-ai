@@ -67,6 +67,17 @@ LLM_MODEL=gpt-4o-mini
 当前已实现：
 
 - `GET /api/health`
+- `POST /api/novels/import`
+- `POST /api/characters/extract/{novel_id}`
+- `GET /api/characters/{novel_id}`
+- `POST /api/scenes/plan/{novel_id}`
+- `GET /api/scenes/{novel_id}`
+- `POST /api/scripts/generate/{scene_id}`
+- `GET /api/scripts/{scene_id}`
+- `PUT /api/scripts/{script_id}`
+- `POST /api/check/consistency/{novel_id}`
+- `GET /api/check/reports/{novel_id}`
+- `GET /api/export/markdown/{novel_id}`
 
 ## 示例数据
 
@@ -79,6 +90,13 @@ LLM_MODEL=gpt-4o-mini
 ## 开发过程与 PR 记录
 
 - PR 1：初始化项目结构与前后端基础环境
+- PR 2：实现小说文本导入与章节段落解析
+- PR 3：实现 LLMService 与 Prompt 管理
+- PR 4：实现人物档案抽取与角色卡展示
+- PR 5：实现分场大纲生成与场景列表展示
+- PR 6：实现单场剧本生成与编辑保存
+- PR 7：实现一致性检查与问题报告
+- PR 8：实现 Markdown 导出与示例数据
 
 ## 未来规划
 
