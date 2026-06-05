@@ -30,3 +30,15 @@ export function planScenes(novelId, sceneCount = 5) {
 export function getScenes(novelId) {
   return api.get(`/scenes/${novelId}`)
 }
+
+export function generateScript(sceneId, payload) {
+  return api.post(`/scripts/generate/${sceneId}`, payload)
+}
+
+export function getScript(sceneId) {
+  return api.get(`/scripts/${sceneId}`)
+}
+
+export function updateScript(scriptId, payload) {
+  return api.put(`/scripts/${scriptId}`, payload)
+}
