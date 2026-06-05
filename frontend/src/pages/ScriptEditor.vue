@@ -65,11 +65,11 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { nextTick, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 
 import { generateScript, getScenes, getScript, updateScript } from '../api'
-import { currentNovel } from '../store/workspace'
+import { currentNovel, selectedSceneId } from '../store/workspace'
 
 const scenes = ref([])
 const selectedScene = ref(null)
@@ -93,12 +93,34 @@ watch(
   { immediate: true }
 )
 
+watch(
+  selectedSceneId,
+  async (sceneId) => {
+    if (!sceneId) return
+    if (scenes.value.length === 0) {
+      await loadScenes()
+    }
+    await nextTick()
+    const scene = scenes.value.find((item) => item.scene_id === sceneId)
+    if (scene) {
+      await selectScene(scene)
+    }
+  },
+  { immediate: true }
+)
+
 async function loadScenes() {
   if (!currentNovel.value) return
 
   try {
     const response = await getScenes(currentNovel.value.novel_id)
     scenes.value = response.data.scenes
+    if (selectedSceneId.value && !selectedScene.value) {
+      const scene = scenes.value.find((item) => item.scene_id === selectedSceneId.value)
+      if (scene) {
+        await selectScene(scene)
+      }
+    }
   } catch (error) {
     ElMessage.error(error.response?.data?.detail || '读取场景失败')
   }

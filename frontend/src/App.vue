@@ -34,14 +34,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-
 import ImportNovel from './pages/ImportNovel.vue'
 import CharacterBoard from './pages/CharacterBoard.vue'
 import SceneBoard from './pages/SceneBoard.vue'
 import ScriptEditor from './pages/ScriptEditor.vue'
 import CheckReport from './pages/CheckReport.vue'
 import ExportPanel from './pages/ExportPanel.vue'
-
-const activeTab = ref('import')
+import { activeTab } from './store/workspace'
 </script>

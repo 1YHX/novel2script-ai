@@ -27,6 +27,12 @@ def generate_script(
     if not scene:
         raise HTTPException(status_code=404, detail="场景不存在")
 
+    previous_scene = session.exec(
+        select(Scene)
+        .where(Scene.novel_id == scene.novel_id)
+        .where(Scene.scene_index < scene.scene_index)
+        .order_by(Scene.scene_index.desc())
+    ).first()
     characters = session.exec(select(Character).where(Character.novel_id == scene.novel_id).order_by(Character.id)).all()
     source_paragraph_ids = _safe_json_loads(scene.source_paragraphs_json, [])
     paragraphs = []
@@ -49,7 +55,8 @@ def generate_script(
             f"用户风格：{payload.style}",
             f"对白密度：{payload.dialogue_density}",
             f"是否包含镜头语言：{payload.include_camera_language}",
-            "场景大纲：\n" + _format_scene(scene),
+            "上一场节拍：\n" + (_format_scene_beat(previous_scene) if previous_scene else "这是第一场，没有上一场。"),
+            "当前场景节拍：\n" + _format_scene(scene),
             "人物档案：\n" + _format_characters(characters),
             "对应原文段落：\n" + _format_paragraphs(paragraphs),
         ]
@@ -117,15 +124,17 @@ def _format_scene(scene: Scene) -> str:
     characters = "、".join(_safe_json_loads(scene.characters_json, []))
     paragraphs = "、".join(str(item) for item in _safe_json_loads(scene.source_paragraphs_json, []))
     return (
-        f"场景编号：{scene.scene_index}\n"
-        f"标题：{scene.title}\n"
-        f"时间：{scene.time}\n"
-        f"地点：{scene.location}\n"
-        f"人物：{characters}\n"
-        f"剧情目的：{scene.plot_goal}\n"
-        f"冲突点：{scene.conflict}\n"
-        f"对应段落：{paragraphs}"
+        f"Place: {scene.location}\n"
+        f"Plot element: 第 {scene.scene_index} 场《{scene.title}》\n"
+        f"Beat: {scene.plot_goal}；冲突：{scene.conflict}\n"
+        f"Time: {scene.time}\n"
+        f"Characters: {characters}\n"
+        f"Source paragraphs: {paragraphs}"
     )
+
+
+def _format_scene_beat(scene: Scene) -> str:
+    return f"第 {scene.scene_index} 场《{scene.title}》：{scene.plot_goal}；冲突：{scene.conflict}"
 
 
 def _format_characters(characters: list[Character]) -> str:

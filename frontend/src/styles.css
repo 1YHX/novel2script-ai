@@ -280,6 +280,38 @@ h1 {
   line-height: 1.55;
 }
 
+.scene-script-preview {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #e4e7ed;
+}
+
+.scene-script-preview-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.scene-script-preview-header strong {
+  font-size: 14px;
+}
+
+.scene-script-preview pre {
+  max-height: 220px;
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  border-radius: 6px;
+  background: #f6f7f9;
+  color: #30343b;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
 .script-editor-page {
   min-height: 520px;
 }

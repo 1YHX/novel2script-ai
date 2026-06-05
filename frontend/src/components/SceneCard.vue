@@ -33,6 +33,13 @@
     <el-button type="primary" plain :loading="generating" @click="$emit('generate', scene)">
       {{ generating ? '生成中' : '生成剧本' }}
     </el-button>
+    <div v-if="script" class="scene-script-preview">
+      <div class="scene-script-preview-header">
+        <strong>已生成剧本 v{{ script.version }}</strong>
+        <el-button size="small" text type="primary" @click="$emit('open-script', scene)">打开编辑</el-button>
+      </div>
+      <pre>{{ script.content }}</pre>
+    </div>
   </article>
 </template>
 
@@ -51,10 +58,14 @@ const props = defineProps({
   generating: {
     type: Boolean,
     default: false
+  },
+  script: {
+    type: Object,
+    default: null
   }
 })
 
-defineEmits(['generate'])
+defineEmits(['generate', 'open-script'])
 
 const sourceParagraphSummary = computed(() => {
   const ids = props.scene.source_paragraphs || []

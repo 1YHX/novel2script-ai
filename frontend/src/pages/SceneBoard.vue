@@ -28,7 +28,9 @@
         :scene="scene"
         :index="index"
         :generating="generatingSceneId === scene.scene_id"
+        :script="generatedScripts[scene.scene_id]"
         @generate="handleGenerateScript"
+        @open-script="handleOpenScript"
       />
     </div>
   </section>
@@ -40,17 +42,19 @@ import { ElMessage } from 'element-plus'
 
 import { generateScript, getScenes, planScenes } from '../api'
 import SceneCard from '../components/SceneCard.vue'
-import { currentNovel } from '../store/workspace'
+import { currentNovel, openScriptEditor } from '../store/workspace'
 
 const loading = ref(false)
 const sceneCount = ref(5)
 const scenes = ref([])
 const generatingSceneId = ref(null)
+const generatedScripts = ref({})
 
 watch(
   currentNovel,
   () => {
     scenes.value = []
+    generatedScripts.value = {}
     if (currentNovel.value) {
       loadScenes()
     }
@@ -76,6 +80,7 @@ async function handlePlan() {
   try {
     const response = await planScenes(currentNovel.value.novel_id, sceneCount.value)
     scenes.value = response.data.scenes
+    generatedScripts.value = {}
     ElMessage.success('分场大纲已生成')
   } catch (error) {
     ElMessage.error(error.response?.data?.detail || '生成分场失败')
@@ -87,16 +92,24 @@ async function handlePlan() {
 async function handleGenerateScript(scene) {
   generatingSceneId.value = scene.scene_id
   try {
-    await generateScript(scene.scene_id, {
+    const response = await generateScript(scene.scene_id, {
       style: '短剧风格',
       dialogue_density: 'medium',
       include_camera_language: true
     })
-    ElMessage.success(`《${scene.title}》剧本已生成，可到“剧本编辑”查看和修改`)
+    generatedScripts.value = {
+      ...generatedScripts.value,
+      [scene.scene_id]: response.data
+    }
+    ElMessage.success(`《${scene.title}》剧本已生成，已在当前卡片下方显示`)
   } catch (error) {
     ElMessage.error(error.response?.data?.detail || '生成剧本失败')
   } finally {
     generatingSceneId.value = null
   }
+}
+
+function handleOpenScript(scene) {
+  openScriptEditor(scene.scene_id)
 }
 </script>
