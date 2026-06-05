@@ -12,3 +12,11 @@ export function getHealth() {
 export function importNovel(payload) {
   return api.post('/novels/import', payload)
 }
+
+export function extractCharacters(novelId) {
+  return api.post(`/characters/extract/${novelId}`)
+}
+
+export function getCharacters(novelId) {
+  return api.get(`/characters/${novelId}`)
+}

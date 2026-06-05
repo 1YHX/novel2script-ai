@@ -136,3 +136,76 @@ h1 {
     grid-template-columns: 1fr;
   }
 }
+
+.board-page {
+  min-height: 420px;
+}
+
+.board-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.board-toolbar h2 {
+  margin: 0 0 6px;
+  font-size: 22px;
+}
+
+.board-toolbar p {
+  margin: 0;
+  color: #667085;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.character-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.character-card {
+  padding: 16px;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.character-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.character-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.character-header span {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e8edf5;
+  color: #466085;
+  font-size: 13px;
+}
+
+.character-card p {
+  margin: 8px 0;
+  color: #4c5564;
+  line-height: 1.6;
+}
+
+.character-card .evidence {
+  color: #667085;
+}

@@ -59,6 +59,7 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 
 import { importNovel } from '../api'
+import { setCurrentNovel } from '../store/workspace'
 
 const title = ref('示例小说')
 const content = ref('')
@@ -123,6 +124,7 @@ async function submitImport() {
       content: content.value
     })
     result.value = response.data
+    setCurrentNovel(response.data)
     ElMessage.success('小说解析完成')
   } catch (error) {
     ElMessage.error(error.response?.data?.detail || '小说解析失败')
