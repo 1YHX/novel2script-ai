@@ -369,3 +369,32 @@ h1 {
     align-items: stretch;
   }
 }
+
+.export-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.export-format {
+  min-height: 150px;
+  padding: 18px;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.export-format.muted {
+  background: #fafbfc;
+}
+
+.export-format h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.export-format p {
+  margin: 0;
+  color: #667085;
+  line-height: 1.7;
+}

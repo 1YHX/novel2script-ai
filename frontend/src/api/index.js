@@ -42,3 +42,9 @@ export function getScript(sceneId) {
 export function updateScript(scriptId, payload) {
   return api.put(`/scripts/${scriptId}`, payload)
 }
+
+export function exportMarkdown(novelId) {
+  return api.get(`/export/markdown/${novelId}`, {
+    responseType: 'blob'
+  })
+}

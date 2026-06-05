@@ -25,6 +25,9 @@
         <el-tab-pane label="一致性检查" name="check">
           <CheckReport />
         </el-tab-pane>
+        <el-tab-pane label="导出结果" name="export">
+          <ExportPanel />
+        </el-tab-pane>
       </el-tabs>
     </section>
   </main>
@@ -38,6 +41,7 @@ import CharacterBoard from './pages/CharacterBoard.vue'
 import SceneBoard from './pages/SceneBoard.vue'
 import ScriptEditor from './pages/ScriptEditor.vue'
 import CheckReport from './pages/CheckReport.vue'
+import ExportPanel from './pages/ExportPanel.vue'
 
 const activeTab = ref('import')
 </script>
