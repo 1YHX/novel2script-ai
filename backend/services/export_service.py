@@ -7,6 +7,45 @@ from models.script import Script
 
 
 class ExportService:
+    def build_yaml(
+        self,
+        title: str,
+        novel_id: int,
+        chapter_count: int,
+        characters: list[Character],
+        scenes: list[Scene],
+        scripts: list[Script],
+        issues: Optional[list[dict]] = None,
+    ) -> str:
+        issue_items = issues or []
+        script_by_scene_id = {script.scene_id: script for script in scripts}
+        issues_by_scene_id: dict[int, list[dict]] = {}
+        for issue in issue_items:
+            scene_id = int(issue.get("scene_id", 0) or 0)
+            issues_by_scene_id.setdefault(scene_id, []).append(issue)
+
+        data = {
+            "schema_version": "1.0",
+            "project": {
+                "id": novel_id,
+                "title": title,
+                "type": "novel_to_script",
+                "language": "zh-CN",
+            },
+            "source": {
+                "kind": "novel",
+                "minimum_chapters_required": 3,
+                "chapter_count": chapter_count,
+                "meets_requirement": chapter_count >= 3,
+            },
+            "characters": [self._character_to_dict(character) for character in characters],
+            "scenes": [
+                self._scene_to_dict(scene, script_by_scene_id.get(scene.id), issues_by_scene_id.get(scene.scene_index, []))
+                for scene in scenes
+            ],
+        }
+        return self._dump_yaml(data)
+
     def build_markdown(
         self,
         title: str,
@@ -103,6 +142,83 @@ class ExportService:
             lines.extend(["暂无一致性检查报告。", ""])
 
         return "\n".join(lines)
+
+    def _character_to_dict(self, character: Character) -> dict:
+        return {
+            "id": character.id,
+            "name": character.name,
+            "role": character.role,
+            "personality": self._loads(character.personality_json, []),
+            "goal": character.goal,
+            "first_appearance": character.first_appearance,
+            "relations": self._loads(character.relations_json, []),
+            "evidence": character.evidence,
+        }
+
+    def _scene_to_dict(self, scene: Scene, script: Optional[Script], issues: list[dict]) -> dict:
+        return {
+            "scene_id": scene.scene_index,
+            "title": scene.title,
+            "time": scene.time,
+            "location": scene.location,
+            "characters": self._loads(scene.characters_json, []),
+            "beat": {
+                "plot_goal": scene.plot_goal,
+                "conflict": scene.conflict,
+            },
+            "source_paragraphs": self._loads(scene.source_paragraphs_json, []),
+            "script": {
+                "version": script.version if script else None,
+                "format": "plain_text",
+                "content": script.content if script else "",
+            },
+            "issues": issues,
+        }
+
+    def _dump_yaml(self, value, indent: int = 0) -> str:
+        lines = self._yaml_lines(value, indent)
+        return "\n".join(lines) + "\n"
+
+    def _yaml_lines(self, value, indent: int) -> list[str]:
+        spaces = " " * indent
+        if isinstance(value, dict):
+            lines: list[str] = []
+            for key, item in value.items():
+                if isinstance(item, (dict, list)):
+                    lines.append(f"{spaces}{key}:")
+                    lines.extend(self._yaml_lines(item, indent + 2))
+                elif isinstance(item, str) and "\n" in item:
+                    lines.append(f"{spaces}{key}: |-")
+                    lines.extend(f"{' ' * (indent + 2)}{line}" for line in item.splitlines())
+                else:
+                    lines.append(f"{spaces}{key}: {self._yaml_scalar(item)}")
+            return lines
+        if isinstance(value, list):
+            if not value:
+                return [f"{spaces}[]"]
+            lines = []
+            for item in value:
+                if isinstance(item, dict):
+                    lines.append(f"{spaces}-")
+                    lines.extend(self._yaml_lines(item, indent + 2))
+                elif isinstance(item, list):
+                    lines.append(f"{spaces}-")
+                    lines.extend(self._yaml_lines(item, indent + 2))
+                else:
+                    lines.append(f"{spaces}- {self._yaml_scalar(item)}")
+            return lines
+        return [f"{spaces}{self._yaml_scalar(value)}"]
+
+    def _yaml_scalar(self, value) -> str:
+        if value is None:
+            return "null"
+        if isinstance(value, bool):
+            return "true" if value else "false"
+        if isinstance(value, (int, float)):
+            return str(value)
+
+        text = str(value)
+        return json.dumps(text, ensure_ascii=False)
 
     def _loads(self, value: str, default: list) -> list:
         try:

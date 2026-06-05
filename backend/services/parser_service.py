@@ -45,9 +45,9 @@ class ParserService:
                 flush_pending()
                 continue
 
-            if CHAPTER_PATTERN.match(line):
+            if self._is_chapter_title(line):
                 flush_pending()
-                if current_paragraphs or current_title != "正文":
+                if current_paragraphs:
                     chapters.append(ParsedChapter(title=current_title, paragraphs=current_paragraphs))
                 current_title = line
                 current_paragraphs = []
@@ -75,6 +75,15 @@ class ParserService:
             return True
         if "：" in line or ":" in line:
             return True
+        return False
+
+    def _is_chapter_title(self, line: str) -> bool:
+        if not CHAPTER_PATTERN.match(line):
+            return False
+        if re.match(r"^\s*(第[一二三四五六七八九十百千万\d]+章|Chapter\s+\d+)", line, re.IGNORECASE):
+            return len(line) <= 80
+        if re.match(r"^\s*[一二三四五六七八九十]+、", line):
+            return len(line) <= 30
         return False
 
     def _group_without_chapter_titles(self, paragraphs: list[ParsedParagraph]) -> list[ParsedChapter]:

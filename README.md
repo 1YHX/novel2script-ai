@@ -76,6 +76,7 @@ LLM_MODEL=deepseek-chat
 - 分场大纲生成
 - 单场剧本生成与编辑
 - 一致性检查
+- YAML 导出
 - Markdown 导出
 
 ## API 接口
@@ -94,10 +95,13 @@ LLM_MODEL=deepseek-chat
 - `POST /api/check/consistency/{novel_id}`
 - `GET /api/check/reports/{novel_id}`
 - `GET /api/export/markdown/{novel_id}`
+- `GET /api/export/yaml/{novel_id}`
 
 ## 示例数据
 
 示例小说位于 `examples/demo_novel.txt`。
+
+剧本 YAML Schema 文档位于 `docs/yaml_schema.md`。
 
 ## Demo 视频
 

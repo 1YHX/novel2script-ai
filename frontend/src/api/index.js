@@ -49,6 +49,12 @@ export function exportMarkdown(novelId) {
   })
 }
 
+export function exportYaml(novelId) {
+  return api.get(`/export/yaml/${novelId}`, {
+    responseType: 'blob'
+  })
+}
+
 export function runConsistencyCheck(novelId) {
   return api.post(`/check/consistency/${novelId}`)
 }
