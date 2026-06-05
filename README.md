@@ -43,10 +43,26 @@ npm run dev
 ## 环境变量配置
 
 ```bash
+cd backend
+cp .env.example .env
+```
+
+默认使用 DeepSeek 兼容 OpenAI Chat Completions 的接口配置。演示时可保持 Mock 模式：
+
+```bash
 USE_MOCK_LLM=true
-LLM_API_KEY=your_api_key
-LLM_BASE_URL=https://api.openai.com/v1
-LLM_MODEL=gpt-4o-mini
+LLM_API_KEY=
+LLM_BASE_URL=https://api.deepseek.com
+LLM_MODEL=deepseek-chat
+```
+
+接入真实 DeepSeek 时，将 `backend/.env` 改为：
+
+```bash
+USE_MOCK_LLM=false
+LLM_API_KEY=你的 DeepSeek API Key
+LLM_BASE_URL=https://api.deepseek.com
+LLM_MODEL=deepseek-chat
 ```
 
 ## 项目结构
