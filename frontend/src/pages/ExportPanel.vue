@@ -3,7 +3,7 @@
     <header class="board-toolbar">
       <div>
         <h2>导出结果</h2>
-        <p v-if="currentNovel">当前项目：{{ currentNovel.title }}</p>
+        <p v-if="currentNovel">当前项目：{{ currentNovel.title }}（ID: {{ currentNovel.novel_id }}）</p>
         <p v-else>请先完成小说导入</p>
       </div>
       <div class="toolbar-actions">

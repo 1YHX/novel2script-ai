@@ -62,7 +62,7 @@ import { ElMessage } from 'element-plus'
 import { importNovel } from '../api'
 import { clearCurrentNovel, setCurrentNovel } from '../store/workspace'
 
-const title = ref('示例小说')
+const title = ref('')
 const content = ref('')
 const loading = ref(false)
 const result = ref(null)
@@ -102,9 +102,7 @@ async function handleFileChange(file) {
   try {
     const buffer = await rawFile.arrayBuffer()
     content.value = decodeTextFile(buffer)
-    if (!title.value.trim()) {
-      title.value = rawFile.name.replace(/\.txt$/i, '')
-    }
+    title.value = rawFile.name.replace(/\.txt$/i, '')
     result.value = null
     clearCurrentNovel()
     ElMessage.info('新文本已载入，请点击“开始解析”切换工作台')
