@@ -27,6 +27,7 @@
           <el-button @click="loadExample">加载示例小说</el-button>
           <el-button type="primary" :loading="loading" @click="submitImport">开始解析</el-button>
         </div>
+        <p class="form-hint">上传或粘贴新文本后，需要点击“开始解析”才会切换当前工作台。</p>
       </el-form>
     </div>
 
@@ -59,7 +60,7 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 
 import { importNovel } from '../api'
-import { setCurrentNovel } from '../store/workspace'
+import { clearCurrentNovel, setCurrentNovel } from '../store/workspace'
 
 const title = ref('示例小说')
 const content = ref('')
@@ -86,6 +87,7 @@ function loadExample() {
   title.value = '雨夜旧仓库'
   content.value = exampleText
   result.value = null
+  clearCurrentNovel()
 }
 
 async function handleFileChange(file) {
@@ -104,6 +106,8 @@ async function handleFileChange(file) {
       title.value = rawFile.name.replace(/\.txt$/i, '')
     }
     result.value = null
+    clearCurrentNovel()
+    ElMessage.info('新文本已载入，请点击“开始解析”切换工作台')
   } catch (error) {
     ElMessage.error('文件读取失败，请检查 txt 文件编码')
   }

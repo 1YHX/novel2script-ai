@@ -5,3 +5,7 @@ export const currentNovel = ref(null)
 export function setCurrentNovel(novel) {
   currentNovel.value = novel
 }
+
+export function clearCurrentNovel() {
+  currentNovel.value = null
+}
