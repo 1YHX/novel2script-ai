@@ -67,7 +67,7 @@ LLM_MODEL=deepseek-chat
 
 ## 项目结构
 
-项目按照 `TASK.md` 要求拆分为 `backend/`、`frontend/`、`examples/` 和 `docs/`。
+项目拆分为 `backend/`、`frontend/`、`examples/` 和 `docs/`，前后端职责清晰，便于演示和迭代。
 
 ## 核心功能
 
