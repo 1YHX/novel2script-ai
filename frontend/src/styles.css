@@ -398,3 +398,54 @@ h1 {
   color: #667085;
   line-height: 1.7;
 }
+
+.issue-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.issue-card {
+  padding: 16px;
+  border: 1px solid #e4e7ed;
+  border-left-width: 4px;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.issue-card.high {
+  border-left-color: #d93025;
+}
+
+.issue-card.medium {
+  border-left-color: #d9822b;
+}
+
+.issue-card.low {
+  border-left-color: #267047;
+}
+
+.issue-header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.issue-header span {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f0f2f5;
+  color: #30343b;
+  font-size: 12px;
+}
+
+.issue-header strong {
+  font-size: 16px;
+}
+
+.issue-card p {
+  margin: 8px 0;
+  color: #4c5564;
+  line-height: 1.6;
+}

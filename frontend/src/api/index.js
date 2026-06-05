@@ -48,3 +48,11 @@ export function exportMarkdown(novelId) {
     responseType: 'blob'
   })
 }
+
+export function runConsistencyCheck(novelId) {
+  return api.post(`/check/consistency/${novelId}`)
+}
+
+export function getCheckReport(novelId) {
+  return api.get(`/check/reports/${novelId}`)
+}
