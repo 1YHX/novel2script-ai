@@ -25,7 +25,9 @@
             <el-button>上传 TXT</el-button>
           </el-upload>
           <el-button @click="loadExample">加载示例小说</el-button>
-          <el-button type="primary" :loading="loading" @click="submitImport">开始解析</el-button>
+          <el-button type="primary" :loading="loading" @click="submitImport">
+            {{ loading ? '解析中' : '开始解析' }}
+          </el-button>
         </div>
         <p class="form-hint">上传或粘贴新文本后，需要点击“开始解析”才会切换当前工作台。</p>
       </el-form>
@@ -33,7 +35,9 @@
 
     <aside class="result-panel">
       <div v-if="!result" class="empty-result">
-        解析结果会显示章节数、段落数和章节预览
+        <span v-if="loading">正在解析章节和段落，请稍候…</span>
+        <span v-else-if="importError">{{ importError }}</span>
+        <span v-else>解析结果会显示章节数、段落数和章节预览</span>
       </div>
       <div v-else>
         <div class="result-summary">
@@ -66,6 +70,7 @@ const title = ref('')
 const content = ref('')
 const loading = ref(false)
 const result = ref(null)
+const importError = ref('')
 
 const exampleText = `第一章 雨夜
 
@@ -87,6 +92,7 @@ function loadExample() {
   title.value = '雨夜旧仓库'
   content.value = exampleText
   result.value = null
+  importError.value = ''
   clearCurrentNovel()
 }
 
@@ -104,6 +110,7 @@ async function handleFileChange(file) {
     content.value = decodeTextFile(buffer)
     title.value = rawFile.name.replace(/\.txt$/i, '')
     result.value = null
+    importError.value = ''
     clearCurrentNovel()
     ElMessage.info('新文本已载入，请点击“开始解析”切换工作台')
   } catch (error) {
@@ -136,6 +143,7 @@ async function submitImport() {
   }
 
   loading.value = true
+  importError.value = ''
   try {
     const response = await importNovel({
       title: title.value,
@@ -145,7 +153,8 @@ async function submitImport() {
     setCurrentNovel(response.data)
     ElMessage.success('小说解析完成')
   } catch (error) {
-    ElMessage.error(error.response?.data?.detail || '小说解析失败')
+    importError.value = error.response?.data?.detail || error.message || '小说解析失败'
+    ElMessage.error(importError.value)
   } finally {
     loading.value = false
   }
