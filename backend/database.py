@@ -4,6 +4,7 @@ from typing import Generator
 from sqlmodel import SQLModel, Session, create_engine
 
 from config import get_settings
+from models.adaptation_strategy import AdaptationStrategy  # noqa: F401
 from models.chapter import Chapter  # noqa: F401
 from models.character import Character  # noqa: F401
 from models.novel import Novel  # noqa: F401

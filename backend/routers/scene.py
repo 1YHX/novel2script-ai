@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, delete, select
 
 from database import get_session
+from models.adaptation_strategy import AdaptationStrategy
 from models.character import Character
 from models.chapter import Chapter
 from models.novel import Novel
@@ -34,7 +35,20 @@ def plan_scenes(
     chapters = session.exec(select(Chapter).where(Chapter.novel_id == novel_id).order_by(Chapter.order_index)).all()
     paragraphs = session.exec(select(Paragraph).where(Paragraph.novel_id == novel_id).order_by(Paragraph.id)).all()
     characters = session.exec(select(Character).where(Character.novel_id == novel_id).order_by(Character.id)).all()
-    raw_scenes = ScenePlannerService(LLMService()).plan(novel, chapters, paragraphs, characters, system_prompt, scene_count)
+    strategy = session.exec(
+        select(AdaptationStrategy)
+        .where(AdaptationStrategy.novel_id == novel_id)
+        .order_by(AdaptationStrategy.created_at.desc())
+    ).first()
+    raw_scenes = ScenePlannerService(LLMService()).plan(
+        novel,
+        chapters,
+        paragraphs,
+        characters,
+        system_prompt,
+        scene_count,
+        strategy.content if strategy else "",
+    )
 
     if not raw_scenes:
         raise HTTPException(status_code=400, detail="小说段落不足，无法生成分场大纲")

@@ -34,6 +34,14 @@
 
 读取小说的人物档案。
 
+## POST /api/strategies/generate/{novel_id}
+
+基于章节事件表和人物档案生成改编策略。
+
+## GET /api/strategies/{novel_id}
+
+读取小说最新的改编策略。
+
 ## POST /api/scenes/plan/{novel_id}
 
 生成分场大纲，支持查询参数 `scene_count`，默认 5。
@@ -70,4 +78,4 @@
 
 ## GET /api/export/yaml/{novel_id}
 
-导出题目要求的结构化剧本 YAML 文件，包含项目元信息、人物档案、分场节拍和剧本文本。
+导出题目要求的结构化剧本 YAML 文件，包含项目元信息、改编策略、人物档案、分场节拍和剧本文本。

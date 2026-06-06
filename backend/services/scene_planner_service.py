@@ -21,11 +21,12 @@ class ScenePlannerService:
         characters: list[Character],
         system_prompt: str,
         scene_count: int,
+        strategy: str = "",
     ) -> list[dict[str, Any]]:
         if not paragraphs:
             return []
 
-        user_prompt = self._build_user_prompt(novel, chapters, paragraphs, characters, scene_count)
+        user_prompt = self._build_user_prompt(novel, chapters, paragraphs, characters, scene_count, strategy)
         try:
             result = self.llm_service.generate_json(system_prompt, user_prompt, "scenes")
             scenes = self._normalize_scenes(result.get("scenes"), scene_count, paragraphs, characters)
@@ -43,6 +44,7 @@ class ScenePlannerService:
         paragraphs: list[Paragraph],
         characters: list[Character],
         scene_count: int,
+        strategy: str,
     ) -> str:
         paragraph_lines = []
         for paragraph in paragraphs[:120]:
@@ -67,6 +69,7 @@ class ScenePlannerService:
                 f"小说标题：{novel.title}",
                 f"目标场景数量：{scene_count}",
                 "改编方法：参考 Toonflow 的分层思路，先阅读章节事件表，建立全局故事走向，再把相邻剧情节点合并为可拍摄分场。每一场必须推进人物目标或制造冲突。",
+                "改编策略：\n" + (strategy or "暂无改编策略，请根据章节事件表自行制定简短策略。"),
                 "章节事件表：\n" + self._build_chapter_event_table(chapters, characters),
                 "人物档案：\n" + ("\n".join(character_lines) if character_lines else "暂无人物档案，请从段落中识别主要人物。"),
                 "带编号的小说段落。source_paragraphs 必须只使用这些 P 后面的数字：\n" + "\n".join(paragraph_lines),

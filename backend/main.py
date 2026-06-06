@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import create_db_and_tables
-from routers import auth, character, export, novel, scene, script
+from routers import auth, character, export, novel, scene, script, strategy
 
 
 app = FastAPI(title="Novel2Script AI API")
@@ -21,6 +21,7 @@ app.include_router(character.router)
 app.include_router(scene.router)
 app.include_router(script.router)
 app.include_router(export.router)
+app.include_router(strategy.router)
 
 
 @app.on_event("startup")

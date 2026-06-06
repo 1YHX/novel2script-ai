@@ -12,6 +12,7 @@ class ExportService:
         title: str,
         novel_id: int,
         chapter_count: int,
+        strategy: str,
         characters: list[Character],
         scenes: list[Scene],
         scripts: list[Script],
@@ -32,6 +33,9 @@ class ExportService:
                 "chapter_count": chapter_count,
                 "meets_requirement": chapter_count >= 3,
             },
+            "adaptation_strategy": {
+                "content": strategy,
+            },
             "characters": [self._character_to_dict(character) for character in characters],
             "scenes": [self._scene_to_dict(scene, script_by_scene_id.get(scene.id)) for scene in scenes],
         }
@@ -40,6 +44,7 @@ class ExportService:
     def build_markdown(
         self,
         title: str,
+        strategy: str,
         characters: list[Character],
         scenes: list[Scene],
         scripts: list[Script],
@@ -51,7 +56,11 @@ class ExportService:
             "",
             f"项目：{title}",
             "",
-            "## 一、人物档案",
+            "## 一、改编策略",
+            "",
+            strategy or "暂无改编策略。",
+            "",
+            "## 二、人物档案",
             "",
         ]
 
@@ -80,7 +89,7 @@ class ExportService:
         else:
             lines.extend(["暂无人物档案。", ""])
 
-        lines.extend(["## 二、分场大纲", ""])
+        lines.extend(["## 三、分场大纲", ""])
         if scenes:
             for scene in scenes:
                 characters_text = "、".join(self._loads(scene.characters_json, []))
@@ -101,7 +110,7 @@ class ExportService:
         else:
             lines.extend(["暂无分场大纲。", ""])
 
-        lines.extend(["## 三、完整剧本", ""])
+        lines.extend(["## 四、完整剧本", ""])
         if scenes:
             for scene in scenes:
                 script = script_by_scene_id.get(scene.id)

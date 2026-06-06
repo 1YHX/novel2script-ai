@@ -14,6 +14,10 @@ project:
 source:
   kind: "novel"
   minimum_chapters_required: 3
+adaptation_strategy:
+  content: |-
+    核心改编原则
+    围绕主角目标和高情绪冲突组织分场。
 characters:
   -
     id: 1
@@ -67,6 +71,8 @@ scenes:
 | `source` | object | 是 | 原始输入约束。 |
 | `source.kind` | string | 是 | 固定为 `novel`。 |
 | `source.minimum_chapters_required` | number | 是 | 题目要求至少 3 个章节。 |
+| `adaptation_strategy` | object | 是 | 改编策略层，参考 Toonflow 的策略层思想。 |
+| `adaptation_strategy.content` | string | 是 | 主线保留、删减原则、世界观呈现和情绪节奏策略。 |
 | `characters` | array | 是 | 人物档案列表。 |
 | `characters[].name` | string | 是 | 人物姓名。 |
 | `characters[].role` | string | 是 | 角色定位。 |
@@ -92,7 +98,7 @@ scenes:
 ## 设计原因
 
 1. 分层表达小说改编过程  
-   小说不能直接变成一整段剧本。Schema 将改编拆成 `characters`、`scenes`、`beat` 和 `script`，对应人物建模、分场大纲和单场剧本生成。
+   小说不能直接变成一整段剧本。Schema 将改编拆成 `adaptation_strategy`、`characters`、`scenes`、`beat` 和 `script`，对应改编决策、人物建模、分场大纲和单场剧本生成。
 
 2. 保留可追溯证据  
    `source_paragraphs` 和人物 `evidence` 让作者知道每个场景和人物设定来自哪里，便于回到原文校对。
@@ -105,3 +111,6 @@ scenes:
 
 5. 贴合 Dramatron 的层级思想  
    Dramatron 使用 `Scene(place, plot_element, beat)` 作为生成对白前的中间结构。本 Schema 将 `location`、`beat.plot_goal` 和 `beat.conflict` 固化下来，让小说改编结果既可读，也能继续驱动单场剧本生成。
+
+6. 借鉴 Toonflow 的改编策略层  
+   Toonflow 的小说转剧本流程会先形成故事骨架和改编策略，再进入剧本生成。本 Schema 保留 `adaptation_strategy.content`，让后续分场和单场剧本生成有明确的主线、删减和节奏依据。

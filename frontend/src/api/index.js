@@ -39,6 +39,14 @@ export function getScenes(novelId) {
   return api.get(`/scenes/${novelId}`)
 }
 
+export function generateStrategy(novelId) {
+  return api.post(`/strategies/generate/${novelId}`)
+}
+
+export function getStrategy(novelId) {
+  return api.get(`/strategies/${novelId}`)
+}
+
 export function generateScript(sceneId, payload) {
   return api.post(`/scripts/generate/${sceneId}`, payload)
 }
