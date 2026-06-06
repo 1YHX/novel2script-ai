@@ -59,11 +59,26 @@
               <p>{{ selectedScene.time }} / {{ selectedScene.location }}</p>
             </div>
             <div class="toolbar-actions">
-              <el-select v-model="style" class="style-select">
+              <el-select v-model="style" class="style-select" placeholder="剧本风格">
                 <el-option label="短剧风格" value="短剧风格" />
-                <el-option label="电影风格" value="电影风格" />
-                <el-option label="舞台剧风格" value="舞台剧风格" />
+                <el-option label="悬疑紧凑" value="悬疑紧凑" />
+                <el-option label="情感细腻" value="情感细腻" />
+                <el-option label="高燃爽剧" value="高燃爽剧" />
+                <el-option label="轻喜剧" value="轻喜剧" />
+                <el-option label="影视剧风格" value="影视剧风格" />
+                <el-option label="古装对白" value="古装对白" />
               </el-select>
+              <el-select v-model="dialogueDensity" class="density-select" placeholder="对白密度">
+                <el-option label="对白精简" value="low" />
+                <el-option label="对白适中" value="medium" />
+                <el-option label="对白密集" value="high" />
+              </el-select>
+              <el-switch
+                v-model="includeCameraLanguage"
+                inline-prompt
+                active-text="镜头"
+                inactive-text="无镜头"
+              />
               <el-button
                 :type="script ? 'default' : 'primary'"
                 :loading="generating"
@@ -106,6 +121,8 @@ const script = ref(null)
 const scriptStatus = ref({})
 const content = ref('')
 const style = ref('短剧风格')
+const dialogueDensity = ref('medium')
+const includeCameraLanguage = ref(true)
 const generating = ref(false)
 const batchGenerating = ref(false)
 const saving = ref(false)
@@ -255,8 +272,8 @@ async function handleBatchGenerate() {
 async function generateSceneScript(scene) {
   const response = await generateScript(scene.scene_id, {
     style: style.value,
-    dialogue_density: 'medium',
-    include_camera_language: true
+    dialogue_density: dialogueDensity.value,
+    include_camera_language: includeCameraLanguage.value
   })
   scriptStatus.value = {
     ...scriptStatus.value,

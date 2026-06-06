@@ -761,7 +761,11 @@ h1 {
 }
 
 .style-select {
-  width: 132px;
+  width: 142px;
+}
+
+.density-select {
+  width: 120px;
 }
 
 .script-meta {
