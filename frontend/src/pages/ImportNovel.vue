@@ -45,18 +45,21 @@
           暂无历史项目，解析结果会显示在这里
         </div>
         <el-scrollbar v-else height="360px">
-          <button
+          <div
             v-for="project in projectHistory"
             :key="project.novel_id"
             class="project-history-item"
-            :class="{ active: currentNovel?.novel_id === project.novel_id }"
+            :class="{ active: selectedHistoryId === project.novel_id }"
             @click="openProject(project)"
           >
-            <strong>{{ project.title }}</strong>
-            <span>
-              {{ project.chapter_count }} 章 / {{ project.scene_count }} 场 / {{ project.script_count }} 版剧本
-            </span>
-          </button>
+            <div>
+              <strong>{{ project.title }}</strong>
+              <span>
+                {{ project.chapter_count }} 章 / {{ project.scene_count }} 场 / {{ project.script_count }} 版剧本
+              </span>
+            </div>
+            <el-button size="small" text type="danger" @click.stop="handleDeleteProject(project)">删除</el-button>
+          </div>
         </el-scrollbar>
       </div>
       <div v-else>
@@ -81,9 +84,9 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
-import { getNovels, importNovel } from '../api'
+import { deleteNovel, getNovels, importNovel } from '../api'
 import { clearCurrentNovel, currentNovel, setCurrentNovel } from '../store/workspace'
 
 const title = ref('')
@@ -93,6 +96,7 @@ const result = ref(null)
 const importError = ref('')
 const projectHistory = ref([])
 const historyLoading = ref(false)
+const selectedHistoryId = ref(null)
 
 const exampleText = `第一章 雨夜
 
@@ -116,6 +120,7 @@ function loadExample() {
   result.value = null
   importError.value = ''
   clearCurrentNovel()
+  selectedHistoryId.value = null
 }
 
 onMounted(() => {
@@ -137,6 +142,7 @@ async function loadHistory() {
 function openProject(project) {
   result.value = null
   importError.value = ''
+  selectedHistoryId.value = project.novel_id
   setCurrentNovel({
     novel_id: project.novel_id,
     title: project.title,
@@ -145,6 +151,33 @@ function openProject(project) {
     chapters: []
   })
   ElMessage.success(`已打开《${project.title}》`)
+}
+
+async function handleDeleteProject(project) {
+  try {
+    await ElMessageBox.confirm(`确定删除《${project.title}》吗？相关人物、分场、剧本和策略都会删除。`, '删除项目', {
+      confirmButtonText: '删除',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+  } catch (error) {
+    return
+  }
+
+  try {
+    await deleteNovel(project.novel_id)
+    if (currentNovel.value?.novel_id === project.novel_id) {
+      clearCurrentNovel()
+    }
+    if (selectedHistoryId.value === project.novel_id) {
+      selectedHistoryId.value = null
+    }
+    result.value = null
+    await loadHistory()
+    ElMessage.success('项目已删除')
+  } catch (error) {
+    ElMessage.error(error.response?.data?.detail || '删除项目失败')
+  }
 }
 
 async function handleFileChange(file) {
@@ -163,6 +196,7 @@ async function handleFileChange(file) {
     result.value = null
     importError.value = ''
     clearCurrentNovel()
+    selectedHistoryId.value = null
     ElMessage.info('新文本已载入，请点击“开始解析”切换工作台')
   } catch (error) {
     ElMessage.error('文件读取失败，请检查 txt 文件编码')
@@ -201,6 +235,7 @@ async function submitImport() {
       content: content.value
     })
     result.value = response.data
+    selectedHistoryId.value = null
     setCurrentNovel(response.data)
     await loadHistory()
     ElMessage.success('小说解析完成')

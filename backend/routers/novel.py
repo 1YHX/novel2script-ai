@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, func, select
+from sqlmodel import Session, delete, func, select
 
 from database import get_session
+from models.adaptation_strategy import AdaptationStrategy
 from models.chapter import Chapter
+from models.character import Character
 from models.novel import Novel
 from models.paragraph import Paragraph
 from models.scene import Scene
@@ -45,6 +47,23 @@ def list_novels(session: Session = Depends(get_session)) -> NovelListResponse:
             )
         )
     return NovelListResponse(novels=summaries)
+
+
+@router.delete("/{novel_id}")
+def delete_novel(novel_id: int, session: Session = Depends(get_session)) -> dict[str, bool]:
+    novel = session.get(Novel, novel_id)
+    if not novel:
+        raise HTTPException(status_code=404, detail="项目不存在")
+
+    session.exec(delete(Script).where(Script.novel_id == novel_id))
+    session.exec(delete(Scene).where(Scene.novel_id == novel_id))
+    session.exec(delete(Character).where(Character.novel_id == novel_id))
+    session.exec(delete(AdaptationStrategy).where(AdaptationStrategy.novel_id == novel_id))
+    session.exec(delete(Paragraph).where(Paragraph.novel_id == novel_id))
+    session.exec(delete(Chapter).where(Chapter.novel_id == novel_id))
+    session.delete(novel)
+    session.commit()
+    return {"ok": True}
 
 
 @router.post("/import", response_model=NovelImportResponse)

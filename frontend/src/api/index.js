@@ -21,6 +21,10 @@ export function getNovels() {
   return api.get('/novels')
 }
 
+export function deleteNovel(novelId) {
+  return api.delete(`/novels/${novelId}`)
+}
+
 export function extractCharacters(novelId) {
   return api.post(`/characters/extract/${novelId}`)
 }
