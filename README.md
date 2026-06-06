@@ -124,9 +124,3 @@ LLM_MODEL=deepseek-chat
 - PR 6：实现单场剧本生成与编辑保存
 - PR 7：实现 Markdown 导出与示例数据
 - PR 8：实现 YAML 导出与 Schema 文档
-
-## 未来规划
-
-- 人物关系图
-- 多风格剧本生成
-- 剧本版本对比

@@ -25,10 +25,6 @@
         <h3>Markdown</h3>
         <p>包含人物档案、分场大纲和完整剧本，适合演示和提交。</p>
       </div>
-      <div class="export-format muted">
-        <h3>PDF / DOCX</h3>
-        <p>后续可扩展；当前优先保证核心闭环稳定运行。</p>
-      </div>
     </div>
   </section>
 </template>
