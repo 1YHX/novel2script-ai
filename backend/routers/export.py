@@ -8,6 +8,7 @@ from models.chapter import Chapter
 from models.novel import Novel
 from models.scene import Scene
 from models.script import Script
+from models.story_skeleton import StorySkeleton
 from services.export_service import ExportService
 
 
@@ -16,9 +17,10 @@ router = APIRouter(prefix="/api/export", tags=["export"])
 
 @router.get("/markdown/{novel_id}")
 def export_markdown(novel_id: int, session: Session = Depends(get_session)) -> Response:
-    novel, characters, _chapters, scenes, latest_scripts, strategy = _load_export_data(novel_id, session)
+    novel, characters, _chapters, scenes, latest_scripts, skeleton, strategy = _load_export_data(novel_id, session)
     markdown = ExportService().build_markdown(
         title=novel.title,
+        skeleton=skeleton.content if skeleton else "",
         strategy=strategy.content if strategy else "",
         characters=characters,
         scenes=scenes,
@@ -35,11 +37,12 @@ def export_markdown(novel_id: int, session: Session = Depends(get_session)) -> R
 
 @router.get("/yaml/{novel_id}")
 def export_yaml(novel_id: int, session: Session = Depends(get_session)) -> Response:
-    novel, characters, chapters, scenes, latest_scripts, strategy = _load_export_data(novel_id, session)
+    novel, characters, chapters, scenes, latest_scripts, skeleton, strategy = _load_export_data(novel_id, session)
     yaml_content = ExportService().build_yaml(
         title=novel.title,
         novel_id=novel.id,
         chapter_count=len(chapters),
+        skeleton=skeleton.content if skeleton else "",
         strategy=strategy.content if strategy else "",
         characters=characters,
         scenes=scenes,
@@ -68,8 +71,11 @@ def _load_export_data(novel_id: int, session: Session):
         .where(AdaptationStrategy.novel_id == novel_id)
         .order_by(AdaptationStrategy.created_at.desc())
     ).first()
+    skeleton = session.exec(
+        select(StorySkeleton).where(StorySkeleton.novel_id == novel_id).order_by(StorySkeleton.created_at.desc())
+    ).first()
     latest_scripts: dict[int, Script] = {}
     for script in scripts:
         latest_scripts[script.scene_id] = script
 
-    return novel, characters, chapters, scenes, latest_scripts, strategy
+    return novel, characters, chapters, scenes, latest_scripts, skeleton, strategy

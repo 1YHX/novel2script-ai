@@ -12,6 +12,7 @@ from models.chapter import Chapter
 from models.novel import Novel
 from models.paragraph import Paragraph
 from models.scene import Scene
+from models.story_skeleton import StorySkeleton
 from schemas.scene import SceneListResponse, SceneResponse
 from services.llm_service import LLMService
 from services.scene_planner_service import ScenePlannerService
@@ -40,6 +41,9 @@ def plan_scenes(
         .where(AdaptationStrategy.novel_id == novel_id)
         .order_by(AdaptationStrategy.created_at.desc())
     ).first()
+    skeleton = session.exec(
+        select(StorySkeleton).where(StorySkeleton.novel_id == novel_id).order_by(StorySkeleton.created_at.desc())
+    ).first()
     raw_scenes = ScenePlannerService(LLMService()).plan(
         novel,
         chapters,
@@ -47,6 +51,7 @@ def plan_scenes(
         characters,
         system_prompt,
         scene_count,
+        skeleton.content if skeleton else "",
         strategy.content if strategy else "",
     )
 

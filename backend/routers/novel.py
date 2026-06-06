@@ -9,6 +9,7 @@ from models.novel import Novel
 from models.paragraph import Paragraph
 from models.scene import Scene
 from models.script import Script
+from models.story_skeleton import StorySkeleton
 from schemas.novel import (
     ChapterResponse,
     NovelImportRequest,
@@ -59,6 +60,7 @@ def delete_novel(novel_id: int, session: Session = Depends(get_session)) -> dict
     session.exec(delete(Scene).where(Scene.novel_id == novel_id))
     session.exec(delete(Character).where(Character.novel_id == novel_id))
     session.exec(delete(AdaptationStrategy).where(AdaptationStrategy.novel_id == novel_id))
+    session.exec(delete(StorySkeleton).where(StorySkeleton.novel_id == novel_id))
     session.exec(delete(Paragraph).where(Paragraph.novel_id == novel_id))
     session.exec(delete(Chapter).where(Chapter.novel_id == novel_id))
     session.delete(novel)

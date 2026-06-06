@@ -34,6 +34,14 @@
 
 读取小说的人物档案。
 
+## POST /api/skeletons/generate/{novel_id}
+
+基于章节事件表和人物档案生成故事骨架。
+
+## GET /api/skeletons/{novel_id}
+
+读取小说最新的故事骨架。
+
 ## POST /api/strategies/generate/{novel_id}
 
 基于章节事件表和人物档案生成改编策略。
@@ -44,7 +52,7 @@
 
 ## POST /api/scenes/plan/{novel_id}
 
-生成分场大纲，支持查询参数 `scene_count`，默认 5。
+生成分场大纲，支持查询参数 `scene_count`，默认 5。后端会自动读取最新故事骨架和改编策略作为规划约束。
 
 ## GET /api/scenes/{novel_id}
 
@@ -74,8 +82,8 @@
 
 ## GET /api/export/markdown/{novel_id}
 
-导出 Markdown 文件，包含人物档案、分场大纲和完整剧本。
+导出 Markdown 文件，包含故事骨架、改编策略、人物档案、分场大纲和完整剧本。
 
 ## GET /api/export/yaml/{novel_id}
 
-导出题目要求的结构化剧本 YAML 文件，包含项目元信息、改编策略、人物档案、分场节拍和剧本文本。
+导出题目要求的结构化剧本 YAML 文件，包含项目元信息、故事骨架、改编策略、人物档案、分场节拍和剧本文本。

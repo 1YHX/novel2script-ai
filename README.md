@@ -74,6 +74,7 @@ LLM_MODEL=deepseek-chat
 - 小说导入与解析
 - 演示登录与项目记录恢复
 - 人物档案抽取
+- 故事骨架生成
 - 改编策略生成
 - 分场大纲生成
 - 单场剧本生成与编辑
@@ -90,6 +91,8 @@ LLM_MODEL=deepseek-chat
 - `POST /api/novels/import`
 - `POST /api/characters/extract/{novel_id}`
 - `GET /api/characters/{novel_id}`
+- `POST /api/skeletons/generate/{novel_id}`
+- `GET /api/skeletons/{novel_id}`
 - `POST /api/strategies/generate/{novel_id}`
 - `GET /api/strategies/{novel_id}`
 - `POST /api/scenes/plan/{novel_id}`

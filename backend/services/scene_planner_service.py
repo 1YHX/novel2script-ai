@@ -21,12 +21,13 @@ class ScenePlannerService:
         characters: list[Character],
         system_prompt: str,
         scene_count: int,
+        skeleton: str = "",
         strategy: str = "",
     ) -> list[dict[str, Any]]:
         if not paragraphs:
             return []
 
-        user_prompt = self._build_user_prompt(novel, chapters, paragraphs, characters, scene_count, strategy)
+        user_prompt = self._build_user_prompt(novel, chapters, paragraphs, characters, scene_count, skeleton, strategy)
         try:
             result = self.llm_service.generate_json(system_prompt, user_prompt, "scenes")
             scenes = self._normalize_scenes(result.get("scenes"), scene_count, paragraphs, characters)
@@ -44,6 +45,7 @@ class ScenePlannerService:
         paragraphs: list[Paragraph],
         characters: list[Character],
         scene_count: int,
+        skeleton: str,
         strategy: str,
     ) -> str:
         paragraph_lines = []
@@ -68,7 +70,8 @@ class ScenePlannerService:
             [
                 f"小说标题：{novel.title}",
                 f"目标场景数量：{scene_count}",
-                "改编方法：先阅读章节事件表，建立全局故事走向，再把相邻剧情节点合并为可拍摄分场。每一场必须推进人物目标或制造冲突。",
+                "改编方法：先阅读章节事件表和故事骨架，确定三幕结构、关键转折和删减边界，再把相邻剧情节点合并为可拍摄分场。每一场必须推进人物目标或制造冲突。",
+                "故事骨架：\n" + (skeleton or "暂无故事骨架，请根据章节事件表先建立简短三幕结构。"),
                 "改编策略：\n" + (strategy or "暂无改编策略，请根据章节事件表自行制定简短策略。"),
                 "章节事件表：\n" + self._build_chapter_event_table(chapters, characters),
                 "人物档案：\n" + ("\n".join(character_lines) if character_lines else "暂无人物档案，请从段落中识别主要人物。"),

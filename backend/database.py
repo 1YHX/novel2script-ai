@@ -11,6 +11,7 @@ from models.novel import Novel  # noqa: F401
 from models.paragraph import Paragraph  # noqa: F401
 from models.scene import Scene  # noqa: F401
 from models.script import Script  # noqa: F401
+from models.story_skeleton import StorySkeleton  # noqa: F401
 
 
 settings = get_settings()
