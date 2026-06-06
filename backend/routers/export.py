@@ -13,11 +13,13 @@ from services.export_service import ExportService
 
 
 router = APIRouter(prefix="/api/export", tags=["export"])
+MIN_REQUIRED_CHAPTERS = 3
 
 
 @router.get("/markdown/{novel_id}")
 def export_markdown(novel_id: int, session: Session = Depends(get_session)) -> Response:
-    novel, characters, _chapters, scenes, latest_scripts, skeleton, strategy = _load_export_data(novel_id, session)
+    novel, characters, chapters, scenes, latest_scripts, skeleton, strategy = _load_export_data(novel_id, session)
+    _ensure_minimum_chapters(chapters)
     markdown = ExportService().build_markdown(
         title=novel.title,
         skeleton=skeleton.content if skeleton else "",
@@ -38,6 +40,7 @@ def export_markdown(novel_id: int, session: Session = Depends(get_session)) -> R
 @router.get("/yaml/{novel_id}")
 def export_yaml(novel_id: int, session: Session = Depends(get_session)) -> Response:
     novel, characters, chapters, scenes, latest_scripts, skeleton, strategy = _load_export_data(novel_id, session)
+    _ensure_minimum_chapters(chapters)
     yaml_content = ExportService().build_yaml(
         title=novel.title,
         novel_id=novel.id,
@@ -79,3 +82,11 @@ def _load_export_data(novel_id: int, session: Session):
         latest_scripts[script.scene_id] = script
 
     return novel, characters, chapters, scenes, latest_scripts, skeleton, strategy
+
+
+def _ensure_minimum_chapters(chapters: list[Chapter]) -> None:
+    if len(chapters) < MIN_REQUIRED_CHAPTERS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"题目要求至少 {MIN_REQUIRED_CHAPTERS} 个章节，当前项目只有 {len(chapters)} 章，无法导出",
+        )

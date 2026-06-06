@@ -22,6 +22,7 @@ from services.parser_service import ParserService
 
 
 router = APIRouter(prefix="/api/novels", tags=["novels"])
+MIN_REQUIRED_CHAPTERS = 3
 
 
 @router.get("", response_model=NovelListResponse)
@@ -81,6 +82,11 @@ def import_novel(payload: NovelImportRequest, session: Session = Depends(get_ses
     parsed_chapters = ParserService().parse(content)
     if not parsed_chapters:
         raise HTTPException(status_code=400, detail="未解析到有效正文")
+    if len(parsed_chapters) < MIN_REQUIRED_CHAPTERS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"题目要求至少 {MIN_REQUIRED_CHAPTERS} 个章节，请上传或粘贴包含至少 3 章的小说文本",
+        )
 
     novel = Novel(title=title, content=content)
     session.add(novel)
