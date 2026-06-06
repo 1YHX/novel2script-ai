@@ -82,6 +82,42 @@ LLM_MODEL=deepseek-chat
 - YAML 导出
 - Markdown 导出
 
+## YAML Schema 设计原因
+
+题目要求交付“结构化剧本（YAML 格式）”，所以本项目没有把 AI 输出保存成一整段不可解析的文本，而是把小说改编过程拆成可编辑、可追溯、可继续生成的结构：
+
+```yaml
+schema_version: "1.0"
+project: {}
+source: {}
+story_skeleton: {}
+adaptation_strategy: {}
+characters: []
+scenes: []
+```
+
+这样设计主要有 6 个原因：
+
+1. 分层表达改编过程  
+   小说不能稳定地一步变成完整剧本。Schema 将结果拆成 `story_skeleton`、`adaptation_strategy`、`characters`、`scenes`、`beat` 和 `script`，分别对应故事结构、改编决策、人物档案、分场大纲、场景节拍和剧本文本。
+
+2. 保留故事规划依据  
+   `story_skeleton.content` 保存故事核、人物弧线、三幕结构和关键转折，避免后续分场只按段落硬切。
+
+3. 保留改编取舍依据  
+   `adaptation_strategy.content` 保存主线保留、删减原则、世界观呈现和情绪节奏，让剧本生成有明确约束。
+
+4. 支持原文追溯  
+   `characters[].evidence` 和 `scenes[].source_paragraphs` 记录人物与场景来自哪里，作者可以回到原文校对，减少 AI 编造和人物失真。
+
+5. 支持作者继续编辑  
+   `script.content` 使用纯文本块，作者可以直接修改；`script.version` 记录剧本版本，方便后续继续打磨。
+
+6. 支持后续自动化处理  
+   `time`、`location`、`characters`、`beat.plot_goal`、`beat.conflict` 都是结构化字段，后续可以继续用于剧本编辑、格式转换、分场检查或二次生成。
+
+完整字段定义见 `docs/yaml_schema.md`。
+
 ## API 接口
 
 当前已实现：
