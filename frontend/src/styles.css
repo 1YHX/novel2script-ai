@@ -150,11 +150,6 @@ h1 {
   color: #80622c;
 }
 
-.logout-button {
-  margin-top: auto;
-  width: 100%;
-}
-
 .app-main {
   min-width: 0;
 }
@@ -174,11 +169,50 @@ h1 {
   letter-spacing: 0;
 }
 
-.main-header p {
+.header-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.header-meta p {
   max-width: 360px;
   margin: 0;
   font-size: 16px;
   text-align: right;
+}
+
+.account-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px 6px 6px;
+  border: 1px solid #dde3ea;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(31, 36, 43, 0.06);
+}
+
+.account-avatar {
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #20242a;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.account-name {
+  max-width: 120px;
+  overflow: hidden;
+  color: #30343b;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .workspace-panel {
@@ -358,11 +392,15 @@ h1 {
   }
 
   .main-header {
-    display: block;
+    align-items: flex-start;
+    flex-direction: column;
   }
 
-  .main-header p {
-    margin-top: 6px;
+  .header-meta {
+    align-items: flex-start;
+  }
+
+  .header-meta p {
     text-align: left;
   }
 

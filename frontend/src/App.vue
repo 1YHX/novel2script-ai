@@ -24,8 +24,6 @@
           <small>{{ item.desc }}</small>
         </button>
       </nav>
-
-      <el-button class="logout-button" @click="clearCurrentUser">退出登录</el-button>
     </aside>
 
     <section class="app-main">
@@ -34,7 +32,14 @@
           <p class="eyebrow">{{ activeNav?.label }}</p>
           <h2>{{ activeNav?.title }}</h2>
         </div>
-        <p>{{ activeNav?.desc }}</p>
+        <div class="header-meta">
+          <p>{{ activeNav?.desc }}</p>
+          <div class="account-bar">
+            <span class="account-avatar">{{ currentUser.username.slice(0, 1).toUpperCase() }}</span>
+            <span class="account-name">{{ currentUser.username }}</span>
+            <el-button size="small" @click="clearCurrentUser">退出登录</el-button>
+          </div>
+        </div>
       </header>
 
       <div class="workspace-panel">
