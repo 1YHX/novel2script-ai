@@ -26,7 +26,7 @@
         <div class="strategy-panel-header">
           <div>
             <h3>改编策略</h3>
-            <p>参考 Toonflow 的策略层，为分场和剧本生成提供主线、删减和节奏约束。</p>
+            <p>为分场和剧本生成提供主线、删减和节奏约束。</p>
           </div>
         </div>
         <pre v-if="strategy">{{ strategy.content }}</pre>

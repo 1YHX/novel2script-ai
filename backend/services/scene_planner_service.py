@@ -68,7 +68,7 @@ class ScenePlannerService:
             [
                 f"小说标题：{novel.title}",
                 f"目标场景数量：{scene_count}",
-                "改编方法：参考 Toonflow 的分层思路，先阅读章节事件表，建立全局故事走向，再把相邻剧情节点合并为可拍摄分场。每一场必须推进人物目标或制造冲突。",
+                "改编方法：先阅读章节事件表，建立全局故事走向，再把相邻剧情节点合并为可拍摄分场。每一场必须推进人物目标或制造冲突。",
                 "改编策略：\n" + (strategy or "暂无改编策略，请根据章节事件表自行制定简短策略。"),
                 "章节事件表：\n" + self._build_chapter_event_table(chapters, characters),
                 "人物档案：\n" + ("\n".join(character_lines) if character_lines else "暂无人物档案，请从段落中识别主要人物。"),
