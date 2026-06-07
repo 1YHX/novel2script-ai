@@ -2,6 +2,10 @@
 
 结构化小说转剧本工作台。
 
+## 演示视频
+
+[Bilibili 演示视频](https://www.bilibili.com/video/BV15AEt6SEiY/?spm_id_from=333.1007.top_right_bar_window_history.content.click&vd_source=7647988dfa6fcd4a1c6f6042248bd18f)
+
 ## 项目简介
 
 本项目面向网文、短剧和影视剧本创作场景，将小说文本拆解为人物、事件、场景和对白结构，并通过可编辑的分场工作流生成规范剧本。
